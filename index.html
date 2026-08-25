@@ -961,6 +961,13 @@ textarea.input { height: auto; padding: 12px 14px; resize: none; }
   [data-device="tablet"] .indent-status-step { font-size: 12.5px; }
   [data-device="tablet"] .indent-status-step svg { width: 20px; height: 20px; }
   [data-device="tablet"] .outlet-card .o-name { font-size: 16px; }
+
+  [data-device="tablet"] .profile-header { padding: 36px 24px; max-width: 480px; margin: 0 auto; }
+  [data-device="tablet"] .avatar-lg { width: 96px; height: 96px; font-size: 32px; }
+  [data-device="tablet"] .profile-header .p-name { font-size: 20px; margin-top: 16px; }
+  [data-device="tablet"] .profile-header .p-role { font-size: 14px; margin-top: 4px; }
+  [data-device="tablet"] .profile-header .p-id { font-size: 12.5px; }
+  [data-device="tablet"] .profile-body { max-width: 480px; margin-left: auto; margin-right: auto; }
 }
 
 </style>
@@ -3659,7 +3666,7 @@ function drawTab(body, tab, info) {
         <div class="stat-row"><span class="s-label">TSM Name</span><span class="s-value">${info.tsmName}</span></div>
         <div class="stat-row"><span class="s-label">TSM Phone</span><span class="s-value">${info.tsmPhone}</span></div>
         <div class="stat-row"><span class="s-label">Office Contact</span><span class="s-value">${info.officeContact}</span></div>
-        <div class="stat-row"><span class="s-label">Email</span><span class="s-value" style="font-size:11.5px;">${info.email}</span></div>
+        <div class="stat-row"><span class="s-label">Email</span><span class="s-value">${info.email}</span></div>
       </div>
       <div class="section-title">Account Information</div>
       <div class="card">
@@ -3734,10 +3741,10 @@ function render(container) {
         <div class="p-id">Employee ID: ${u.id}</div>
       </div>
 
-      <div style="padding:16px;">
+      <div class="profile-body" style="padding:16px;">
         <div class="card">
           <div class="stat-row"><span class="s-label">${icons.phone} Phone</span><span class="s-value">${u.phone}</span></div>
-          <div class="stat-row"><span class="s-label">${icons.mail} Email</span><span class="s-value" style="font-size:12px;">${u.email}</span></div>
+          <div class="stat-row"><span class="s-label">${icons.mail} Email</span><span class="s-value">${u.email}</span></div>
           <div class="stat-row"><span class="s-label">${icons.user} Role</span><span class="s-value">${u.role}</span></div>
         </div>
 
