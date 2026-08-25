@@ -866,28 +866,30 @@ textarea.input { height: auto; padding: 12px 14px; resize: none; }
 }
 
 /* Tablet: dense label/value fact-sheet cards (RO Details, Account Info, invoices, transactions)
-   flow into two balanced columns instead of one long stretched column of thin rows. */
+   flow into two balanced columns instead of one long stretched column of thin rows. Only kicks in
+   once a card has at least 4 rows/fields — a short 2-row card (e.g. the sync-progress checklist)
+   has nothing to gain from being split and looks broken split in half, so it's left single-column. */
 @media (min-width: 700px) {
-  [data-device="tablet"] .card:has(> .stat-row) {
+  [data-device="tablet"] .card:has(> .stat-row ~ .stat-row ~ .stat-row ~ .stat-row) {
     column-count: 2;
     column-gap: 28px;
   }
-  [data-device="tablet"] .card:has(> .stat-row) > .stat-row {
+  [data-device="tablet"] .card:has(> .stat-row ~ .stat-row ~ .stat-row ~ .stat-row) > .stat-row {
     break-inside: avoid;
   }
 
   /* Tablet: audit-form field cards (RO Audit Forms sections) lay their inputs out two-up
      instead of one long column of full-width fields; any non-field child (e.g. a repeat-nav
-     prev/next header) still spans the full card width. */
-  [data-device="tablet"] #sec-body .card:has(> .field) {
+     prev/next header) still spans the full card width. Same 4-field minimum as above. */
+  [data-device="tablet"] #sec-body .card:has(> .field ~ .field ~ .field ~ .field) {
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 20px;
     row-gap: 4px;
     align-items: start;
   }
-  [data-device="tablet"] #sec-body .card:has(> .field) > * { grid-column: 1 / -1; }
-  [data-device="tablet"] #sec-body .card:has(> .field) > .field { grid-column: auto; margin-bottom: 0 !important; }
+  [data-device="tablet"] #sec-body .card:has(> .field ~ .field ~ .field ~ .field) > * { grid-column: 1 / -1; }
+  [data-device="tablet"] #sec-body .card:has(> .field ~ .field ~ .field ~ .field) > .field { grid-column: auto; margin-bottom: 0 !important; }
 }
 
 /* Tablet portrait vs landscape: widen the content ceiling further in landscape so cards/grids
