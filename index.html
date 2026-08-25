@@ -589,6 +589,12 @@ textarea.input { height: auto; padding: 12px 14px; resize: none; }
 .indent-card .i-outlet { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
 .indent-card .i-meta { display: flex; justify-content: space-between; margin-top: 10px; font-size: 11.5px; color: var(--muted); }
 
+.indent-status-row { display: flex; align-items: flex-start; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--divider); }
+.indent-status-step { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.indent-status-step svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.indent-status-label { align-self: stretch; min-width: 0; }
+.indent-status-step.done { color: var(--success); }
+
 /* ============ Tabs ============ */
 .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
 .tab-btn { flex: 0 0 auto; padding: 8px 16px; border-radius: var(--radius-full); font-size: 13px; font-weight: 700; color: var(--text-secondary); background: var(--surface-alt); white-space: nowrap; transition: background 140ms var(--ease-standard), color 140ms var(--ease-standard); }
@@ -834,8 +840,7 @@ textarea.input { height: auto; padding: 12px 14px; resize: none; }
 [data-device="tablet"] #mt-list,
 [data-device="tablet"] #pt-list,
 [data-device="tablet"] #activity-list,
-[data-device="tablet"] #outstanding-list,
-[data-device="tablet"] #ai-content {
+[data-device="tablet"] #outstanding-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
@@ -847,19 +852,31 @@ textarea.input { height: auto; padding: 12px 14px; resize: none; }
 [data-device="tablet"] #mt-list > *,
 [data-device="tablet"] #pt-list > *,
 [data-device="tablet"] #activity-list > *,
-[data-device="tablet"] #outstanding-list > *,
-[data-device="tablet"] #ai-content > * {
+[data-device="tablet"] #outstanding-list > * {
   grid-column: 1 / -1;
 }
 [data-device="tablet"] #in-list > .card,
 [data-device="tablet"] #mt-list > .card,
 [data-device="tablet"] #pt-list > .card,
 [data-device="tablet"] #activity-list > .card,
-[data-device="tablet"] #outstanding-list > .card,
-[data-device="tablet"] #ai-content > .card {
+[data-device="tablet"] #outstanding-list > .card {
   grid-column: auto;
   margin-top: 0;
 }
+/* #ai-content (Account Info) is deliberately separate: it holds anywhere from 1 card (a single
+   dense fact-sheet) to 6+ short cards (Invoice/Transaction Details) depending on which tab is
+   active, all through the same container. A fixed column count either wastes space or squeezes
+   a lone fact-sheet card into a too-narrow column (causing text to wrap unnecessarily) — auto-fit
+   sizes each card by content instead, giving 1-2 cards full/half width and letting many short
+   cards naturally flow into 2-3 columns once there's room. */
+[data-device="tablet"] #ai-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+[data-device="tablet"] #ai-content > * { grid-column: 1 / -1; }
+[data-device="tablet"] #ai-content > .card { grid-column: auto; margin-top: 0; }
 [data-device="tablet"] .login-screen {
   max-width: 480px;
   margin: 0 auto;
@@ -906,10 +923,44 @@ textarea.input { height: auto; padding: 12px 14px; resize: none; }
   [data-device="tablet"] #mt-list,
   [data-device="tablet"] #pt-list,
   [data-device="tablet"] #activity-list,
-  [data-device="tablet"] #outstanding-list,
-  [data-device="tablet"] #ai-content {
+  [data-device="tablet"] #outstanding-list {
     grid-template-columns: 1fr 1fr 1fr;
   }
+}
+
+/* ---------- Tablet: typography/icon upscale ----------
+   Layout alone (columns, grids) isn't enough to make tablet feel designed-for-tablet — text and
+   icons were staying at mobile pixel sizes, just spread across a wider canvas. This bumps the
+   most-used, most-visible classes ~10-15% and gives cards a bit more breathing room. Additive
+   only: mobile is untouched, nothing here changes layout/structure, only size/spacing. */
+@media (min-width: 700px) {
+  [data-device="tablet"] .icon-btn svg { width: 24px; height: 24px; }
+  [data-device="tablet"] .nav-rail-item svg { width: 24px; height: 24px; }
+  [data-device="tablet"] .nav-rail-item { font-size: 11.5px; }
+  [data-device="tablet"] .drawer-nav-item svg { width: 22px; height: 22px; }
+  [data-device="tablet"] .drawer-nav-item { font-size: 15.5px; }
+  [data-device="tablet"] .app-header-title { font-size: 19px; }
+
+  [data-device="tablet"] .card { padding: 20px; }
+  [data-device="tablet"] .section-title { font-size: 13.5px; }
+  [data-device="tablet"] .o-code { font-size: 12.5px; }
+  [data-device="tablet"] .stat-row .s-label { font-size: 14.5px; }
+  [data-device="tablet"] .stat-row .s-value { font-size: 15.5px; }
+  [data-device="tablet"] .stat-row { padding: 14px 0; }
+
+  [data-device="tablet"] .field label { font-size: 13.5px; }
+  [data-device="tablet"] .input, [data-device="tablet"] select.input { height: 52px; font-size: 15.5px; }
+  [data-device="tablet"] .btn { height: 52px; font-size: 15.5px; }
+  [data-device="tablet"] .chip, [data-device="tablet"] .tab-btn { font-size: 13.5px; padding-top: 9px; padding-bottom: 9px; }
+  [data-device="tablet"] .badge { font-size: 11.5px; padding: 4px 11px; }
+
+  [data-device="tablet"] .kpi-card .kpi-value { font-size: 22px; }
+  [data-device="tablet"] .kpi-card .kpi-label { font-size: 12.5px; }
+  [data-device="tablet"] .greeting-block h2 { font-size: 21px; }
+
+  [data-device="tablet"] .indent-status-step { font-size: 12.5px; }
+  [data-device="tablet"] .indent-status-step svg { width: 20px; height: 20px; }
+  [data-device="tablet"] .outlet-card .o-name { font-size: 16px; }
 }
 
 </style>
@@ -3529,8 +3580,8 @@ async function load(body) {
         <div class="o-code" style="margin-top:2px;">${i.dealerName}</div>
         <div class="stat-row" style="border:none;padding-top:8px;"><span class="s-label">Product</span><span class="s-value">${i.product}</span></div>
         <div class="stat-row" style="border:none;padding-top:0;"><span class="s-label">Qty</span><span class="s-value">${i.quantity} ${i.unit}</span></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
-          ${STATUS_STEPS.map((s, idx) => `<span style="flex:1;text-align:center;font-size:10px;font-weight:700;color:${idx <= stepIdx ? 'var(--success)' : 'var(--muted)'};">${idx <= stepIdx ? icons.checkCircle : icons.info}<br/>${STATUS_LABEL[s]}</span>`).join('')}
+        <div class="indent-status-row">
+          ${STATUS_STEPS.map((s, idx) => `<span class="indent-status-step ${idx <= stepIdx ? 'done' : ''}">${idx <= stepIdx ? icons.checkCircle : icons.info}<span class="indent-status-label">${STATUS_LABEL[s]}</span></span>`).join('')}
         </div>
       </div>`;
     }).join('');
