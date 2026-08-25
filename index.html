@@ -865,16 +865,18 @@ textarea.input { height: auto; padding: 12px 14px; resize: none; }
   margin: 0 auto;
 }
 
-/* Tablet: dense label/value fact-sheet cards (RO Details, Account Info, invoices, transactions)
-   flow into two balanced columns instead of one long stretched column of thin rows. Only kicks in
-   once a card has at least 4 rows/fields — a short 2-row card (e.g. the sync-progress checklist)
-   has nothing to gain from being split and looks broken split in half, so it's left single-column. */
+/* Tablet: dense label/value fact-sheet cards (RO Details) flow into two balanced columns instead
+   of one long stretched column of thin rows. Only kicks in once a card has at least 4 rows — a
+   short 2-row card (e.g. the sync-progress checklist) has nothing to gain from being split and
+   looks broken split in half, so it's left single-column. Explicitly excludes #ai-content cards —
+   those are ALREADY split into side-by-side cards by the grid two rules below, so adding a second,
+   inner column split on top of that produced columns so narrow that text wrapped letter-by-letter. */
 @media (min-width: 700px) {
-  [data-device="tablet"] .card:has(> .stat-row ~ .stat-row ~ .stat-row ~ .stat-row) {
+  [data-device="tablet"] .card:has(> .stat-row ~ .stat-row ~ .stat-row ~ .stat-row):not(#ai-content .card) {
     column-count: 2;
     column-gap: 28px;
   }
-  [data-device="tablet"] .card:has(> .stat-row ~ .stat-row ~ .stat-row ~ .stat-row) > .stat-row {
+  [data-device="tablet"] .card:has(> .stat-row ~ .stat-row ~ .stat-row ~ .stat-row):not(#ai-content .card) > .stat-row {
     break-inside: avoid;
   }
 
