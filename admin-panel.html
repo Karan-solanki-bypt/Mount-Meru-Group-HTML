@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#C23528" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23C23528'/%3E%3Ctext x='13' y='18' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='800' font-size='15' fill='white'%3Em%3C/text%3E%3Ccircle cx='7' cy='6' r='2.4' fill='%23FAD201'/%3E%3C/svg%3E" />
+<title>Mount Meru Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Same Mount Meru Group brand palette / tokens as the mobile app, so the admin panel reads as
+     one product rather than a redesign. */
+  --primary: #C23528;
+  --primary-dark: #8F1F15;
+  --primary-darker: #6B160E;
+  --primary-light: #FBEAE8;
+  --primary-tint: #FDF3F2;
+  --accent: #FAD201;
+  --accent-dark: #DCB800;
+
+  --background: #F4F5F7;
+  --surface: #FFFFFF;
+  --surface-alt: #F7F8FA;
+  --surface-raised: #FFFFFF;
+
+  --text: #1A1C20;
+  --text-secondary: #61656D;
+  --muted: #94989F;
+  --border: #E4E6EA;
+  --border-strong: #D2D5DB;
+  --divider: #EBEDF0;
+
+  --success: #1B9A5A;
+  --success-light: #E4F7ED;
+  --warning: #B8860A;
+  --warning-light: #FFF6DD;
+  --danger: #D1272F;
+  --danger-light: #FBE8E9;
+  --info: #2569C9;
+  --info-light: #E9F1FD;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-7: 32px; --space-8: 40px;
+
+  --radius-xs: 8px; --radius-sm: 10px; --radius-md: 14px; --radius-lg: 18px; --radius-xl: 24px; --radius-full: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(20, 20, 25, 0.05);
+  --shadow-sm: 0 2px 6px rgba(20, 20, 25, 0.06), 0 1px 2px rgba(20, 20, 25, 0.05);
+  --shadow-md: 0 8px 20px rgba(20, 20, 25, 0.09), 0 2px 6px rgba(20, 20, 25, 0.06);
+  --shadow-lg: 0 20px 44px rgba(20, 20, 25, 0.18), 0 4px 12px rgba(20, 20, 25, 0.08);
+  --shadow-primary: 0 8px 20px rgba(194, 53, 40, 0.28);
+
+  --sidebar-w: 244px;
+  --sidebar-w-collapsed: 76px;
+  --topbar-h: 64px;
+
+  --font: 'Inter', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --text-xs: 11px; --text-sm: 12.5px; --text-base: 14px; --text-md: 15px; --text-lg: 17px; --text-xl: 20px; --text-2xl: 24px;
+
+  --ease-standard: cubic-bezier(.22, .9, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+
+  --z-sidebar: 200; --z-drawer: 300; --z-modal: 500; --z-toast: 600;
+}
+
+:root[data-theme="dark"] {
+  --background: #131417;
+  --surface: #1C1E22;
+  --surface-alt: #202226;
+  --surface-raised: #24262B;
+  --text: #F3F4F6;
+  --text-secondary: #B4B7BE;
+  --muted: #83868D;
+  --border: #303237;
+  --border-strong: #3A3D43;
+  --divider: #2B2D32;
+  --primary-light: #3A1E1A;
+  --primary-tint: #2A1613;
+  --success-light: #143826;
+  --warning-light: #3A2E0A;
+  --danger-light: #3A1416;
+  --info-light: #142A42;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--background);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+svg { width: 1em; height: 1em; flex-shrink: 0; }
+button, input, select, textarea { font-family: inherit; color: inherit; font-size: inherit; }
+button { cursor: pointer; background: none; border: none; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+img { max-width: 100%; display: block; }
+:focus-visible { outline: 2.5px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
+
+/* ============ Buttons (same component as the mobile app) ============ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 42px; padding: 0 18px; border-radius: var(--radius-md);
+  font-size: 13.5px; font-weight: 700; letter-spacing: -0.005em; white-space: nowrap;
+  transition: transform 100ms var(--ease-standard), opacity 100ms var(--ease-standard), background 160ms var(--ease-standard), box-shadow 160ms var(--ease-standard);
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: linear-gradient(155deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; box-shadow: var(--shadow-primary); }
+.btn-primary:disabled { background: #EFC0BE; box-shadow: none; cursor: not-allowed; }
+.btn-secondary { background: var(--primary-light); color: var(--primary); }
+.btn-outline { background: var(--surface); border: 1.5px solid var(--border-strong); color: var(--text); }
+.btn-outline:hover { background: var(--surface-alt); }
+.btn-ghost { background: transparent; color: var(--primary); height: auto; padding: 6px 4px; }
+.btn-danger { background: var(--danger); color: #fff; box-shadow: 0 8px 20px rgba(209, 39, 47, 0.24); }
+.btn-sm { height: 36px; font-size: 12.5px; padding: 0 13px; }
+.btn-block { width: 100%; }
+.btn svg { width: 16px; height: 16px; }
+
+.icon-btn {
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-full); color: var(--text-secondary); flex: 0 0 auto;
+  transition: background 140ms var(--ease-standard), color 140ms var(--ease-standard);
+}
+.icon-btn:hover { background: var(--surface-alt); color: var(--text); }
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn-sm { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+.icon-btn-sm:hover { background: var(--surface-alt); color: var(--primary); }
+.icon-btn-sm.danger:hover { background: var(--danger-light); color: var(--danger); }
+.icon-btn-sm svg { width: 16px; height: 16px; }
+
+/* ============ Inputs / forms ============ */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 7px; }
+.field-hint { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+.input, select.input {
+  width: 100%; height: 42px; border-radius: var(--radius-md); border: 1.5px solid var(--border);
+  background: var(--surface-alt); padding: 0 13px; font-size: 13.5px; color: var(--text);
+  transition: border-color 140ms var(--ease-standard), box-shadow 140ms var(--ease-standard), background 140ms var(--ease-standard);
+}
+.input:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 4px var(--primary-light); outline: none; }
+.input.error { border-color: var(--danger); }
+.field-error { color: var(--danger); font-size: 12px; margin-top: 6px; }
+textarea.input { height: auto; min-height: 84px; padding: 11px 13px; resize: vertical; }
+.checkbox-row { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--text-secondary); }
+.checkbox-row input { width: 17px; height: 17px; accent-color: var(--primary); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.form-grid .field.full { grid-column: 1 / -1; }
+
+.switch { display: inline-block; position: relative; width: 42px; height: 25px; border-radius: var(--radius-full); background: var(--divider); flex: 0 0 auto; transition: background 180ms var(--ease-standard); }
+.switch.on { background: var(--primary); }
+.switch .knob { position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: var(--shadow-sm); transition: transform 180ms var(--ease-spring); }
+.switch.on .knob { transform: translateX(17px); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--divider); }
+.switch-row:last-child { border-bottom: none; }
+.switch-row .sr-title { font-size: 13.5px; font-weight: 700; }
+.switch-row .sr-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ============ Search / filters ============ */
+.search-bar { display: flex; align-items: center; gap: 8px; background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 0 12px; height: 40px; transition: border-color 140ms var(--ease-standard), background 140ms var(--ease-standard); flex: 1 1 auto; min-width: 160px; }
+.search-bar:focus-within { border-color: var(--primary); background: var(--surface); }
+.search-bar svg { width: 16px; height: 16px; color: var(--muted); flex: 0 0 auto; }
+.search-bar input { flex: 1 1 auto; height: 100%; border: none; background: transparent; font-size: 13px; min-width: 0; }
+.search-bar input:focus { outline: none; }
+.search-bar .clear-btn { color: var(--muted); display: flex; }
+.search-bar .clear-btn svg { width: 14px; height: 14px; }
+
+.chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { flex: 0 0 auto; padding: 8px 14px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; background: var(--surface); border: 1.5px solid var(--border); color: var(--text-secondary); white-space: nowrap; transition: background 140ms var(--ease-standard), color 140ms var(--ease-standard), border-color 140ms var(--ease-standard); }
+.chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* ============ Cards / KPI ============ */
+.card { background: var(--surface); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+.section-title { font-size: var(--text-sm); font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+.section-title .link { text-transform: none; letter-spacing: 0; color: var(--primary); font-weight: 700; font-size: 12.5px; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.kpi-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.kpi-card { background: var(--surface); border-radius: var(--radius-lg); padding: 18px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.kpi-card .kpi-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.kpi-card .kpi-icon { width: 38px; height: 38px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary); }
+.kpi-card .kpi-icon svg { width: 19px; height: 19px; }
+.kpi-card .kpi-value { font-size: 26px; font-weight: 800; color: var(--text); line-height: 1.15; letter-spacing: -0.01em; margin-top: 14px; }
+.kpi-card .kpi-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; font-weight: 600; }
+.kpi-card .kpi-trend { font-size: 11.5px; font-weight: 700; margin-top: 10px; display: inline-flex; align-items: center; gap: 4px; }
+.kpi-trend.up { color: var(--success); }
+.kpi-trend.down { color: var(--danger); }
+.kpi-trend svg { width: 13px; height: 13px; }
+
+.quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.quick-action { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--border); font-size: 12.5px; font-weight: 700; color: var(--text); box-shadow: var(--shadow-xs); text-align: left; }
+.quick-action:hover { background: var(--surface-alt); }
+.quick-action .qa-icon { width: 38px; height: 38px; border-radius: var(--radius-full); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.quick-action .qa-icon svg { width: 18px; height: 18px; }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: var(--radius-full); font-size: 10.5px; font-weight: 700; letter-spacing: 0.01em; white-space: nowrap; }
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge-success { background: var(--success-light); color: var(--success); }
+.badge-warning { background: var(--warning-light); color: var(--warning); }
+.badge-danger { background: var(--danger-light); color: var(--danger); }
+.badge-info { background: var(--info-light); color: var(--info); }
+.badge-muted { background: var(--divider); color: var(--muted); }
+
+.bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 8px; }
+.bar-chart .bar-col { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 8px; }
+.bar-chart .bar { width: 100%; max-width: 34px; border-radius: 5px 5px 0 0; background: var(--primary); min-height: 3px; transition: height 500ms var(--ease-standard); }
+.bar-chart .bar-label { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+
+.progress-bar { height: 7px; border-radius: var(--radius-full); background: var(--divider); overflow: hidden; min-width: 90px; }
+.progress-bar > span { display: block; height: 100%; border-radius: var(--radius-full); background: var(--primary); transition: width 450ms var(--ease-standard); }
+.progress-bar.success > span { background: var(--success); }
+.progress-bar.danger > span { background: var(--danger); }
+
+.indent-status-row { display: flex; align-items: flex-start; gap: 6px; }
+.indent-status-step { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); position: relative; }
+.indent-status-step svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.indent-status-step.done { color: var(--success); }
+.indent-status-step:not(:last-child)::after { content: ''; position: absolute; top: 9px; left: calc(50% + 14px); width: calc(100% - 12px); height: 2px; background: var(--divider); }
+.indent-status-step.done:not(:last-child)::after { background: var(--success); }
+
+.timeline { position: relative; padding-left: 22px; }
+.timeline-item { position: relative; padding-bottom: 20px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item::before { content: ''; position: absolute; left: -22px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--divider); border: 2px solid var(--surface); }
+.timeline-item.done::before { background: var(--success); }
+.timeline-item.active::before { background: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.timeline-item::after { content: ''; position: absolute; left: -18px; top: 13px; bottom: -8px; width: 2px; background: var(--divider); }
+.timeline-item:last-child::after { display: none; }
+.timeline-item .t-title { font-size: 13px; font-weight: 700; }
+.timeline-item .t-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ============ App shell: sidebar + topbar ============ */
+.admin-shell { display: flex; min-height: 100vh; }
+.sidebar {
+  width: var(--sidebar-w); flex: 0 0 auto; background: var(--surface); border-right: 1px solid var(--divider);
+  display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; z-index: var(--z-sidebar);
+  transition: width 200ms var(--ease-standard);
+}
+.sidebar.collapsed { width: var(--sidebar-w-collapsed); }
+.sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 14px; flex: 0 0 auto; }
+.sidebar-brand svg { width: 32px; height: 32px; flex: 0 0 auto; }
+.sidebar-brand .brand-text { font-size: 14.5px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; white-space: nowrap; overflow: hidden; }
+.sidebar-brand .brand-text small { display: block; font-size: 10.5px; font-weight: 600; color: var(--text-secondary); }
+.sidebar.collapsed .brand-text { display: none; }
+.sidebar-nav { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; padding: 6px 12px; }
+.sidebar-section-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 12px 6px; }
+.sidebar-section-label:first-child { padding-top: 4px; }
+.sidebar.collapsed .sidebar-section-label { padding: 14px 0 6px; text-align: center; height: 1px; overflow: hidden; }
+.sidebar.collapsed .sidebar-section-label:first-child { height: auto; overflow: visible; }
+.sidebar-nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-md);
+  color: var(--text-secondary); font-size: 13px; font-weight: 600; margin-bottom: 2px; white-space: nowrap;
+  transition: background 140ms var(--ease-standard), color 140ms var(--ease-standard);
+}
+.sidebar-nav-item svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.sidebar-nav-item span { overflow: hidden; text-overflow: ellipsis; }
+.sidebar-nav-item:hover { background: var(--surface-alt); color: var(--text); }
+.sidebar-nav-item .badge { padding: 2px 7px; font-size: 10px; }
+.sidebar-nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 700; }
+.sidebar.collapsed .sidebar-nav-item { justify-content: center; padding: 10px; }
+.sidebar.collapsed .sidebar-nav-item span { display: none; }
+.sidebar-footer { padding: 12px; border-top: 1px solid var(--divider); flex: 0 0 auto; }
+.sidebar-collapse-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 38px; border-radius: var(--radius-md); color: var(--text-secondary); font-size: 12px; font-weight: 700; }
+.sidebar-collapse-btn:hover { background: var(--surface-alt); }
+.sidebar-collapse-btn svg { width: 16px; height: 16px; transition: transform 200ms var(--ease-standard); }
+.sidebar.collapsed .sidebar-collapse-btn svg { transform: rotate(180deg); }
+.sidebar.collapsed .sidebar-collapse-btn span { display: none; }
+
+.admin-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
+.topbar {
+  height: var(--topbar-h); flex: 0 0 auto; display: flex; align-items: center; gap: 14px; padding: 0 22px;
+  background: var(--surface); border-bottom: 1px solid var(--divider); position: sticky; top: 0; z-index: 150;
+}
+.sidebar-open-btn { display: none; }
+.topbar-search { max-width: 380px; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.header-badge-wrap { position: relative; }
+.header-badge { position: absolute; top: 3px; right: 3px; min-width: 15px; height: 15px; border-radius: var(--radius-full); background: var(--primary); color: #fff; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 3px; border: 1.5px solid var(--surface); }
+
+.profile-btn { display: flex; align-items: center; gap: 9px; padding: 6px 10px 6px 6px; border-radius: var(--radius-full); }
+.profile-btn:hover { background: var(--surface-alt); }
+.profile-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 800; flex: 0 0 auto; }
+.profile-btn .p-name { font-size: 12.5px; font-weight: 700; line-height: 1.2; text-align: left; }
+.profile-btn .p-role { font-size: 10.5px; color: var(--text-secondary); font-weight: 500; }
+.profile-btn svg.chev { width: 14px; height: 14px; color: var(--muted); }
+
+.dropdown-wrap { position: relative; }
+.dropdown-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--surface);
+  border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  padding: 8px; z-index: 250; display: none;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-menu.notif-panel.open { display: flex; }
+.dropdown-menu .dd-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; color: var(--text); width: 100%; text-align: left; }
+.dropdown-menu .dd-item:hover { background: var(--surface-alt); }
+.dropdown-menu .dd-item svg { width: 16px; height: 16px; color: var(--text-secondary); }
+.dropdown-menu .dd-item.danger { color: var(--danger); }
+.dropdown-menu .dd-item.danger svg { color: var(--danger); }
+.dropdown-menu .dd-divider { height: 1px; background: var(--divider); margin: 6px 2px; }
+.dropdown-header { padding: 8px 10px 10px; border-bottom: 1px solid var(--divider); margin-bottom: 6px; }
+.dropdown-header .dh-name { font-size: 13px; font-weight: 700; }
+.dropdown-header .dh-email { font-size: 11.5px; color: var(--text-secondary); margin-top: 1px; }
+
+.notif-panel { width: 340px; max-height: 420px; flex-direction: column; padding: 0; }
+.notif-panel .np-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--divider); }
+.notif-panel .np-header h4 { font-size: 13.5px; font-weight: 700; }
+.notif-panel .np-header button { font-size: 11.5px; font-weight: 700; color: var(--primary); }
+.notif-panel .np-list { overflow-y: auto; flex: 1 1 auto; padding: 6px; }
+.notif-panel .np-footer { padding: 10px 14px; border-top: 1px solid var(--divider); text-align: center; }
+.notif-panel .np-footer a { font-size: 12px; font-weight: 700; color: var(--primary); }
+
+.content { flex: 1 1 auto; padding: 26px 30px 60px; min-width: 0; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+.page-header h1 { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; }
+.page-header .sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.page-header .ph-actions { display: flex; gap: 10px; align-items: center; }
+.grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+/* ============ Data table ============ */
+.table-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
+.table-toolbar { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--divider); flex-wrap: wrap; }
+.table-toolbar .tt-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.table-toolbar select.input { width: auto; min-width: 130px; }
+.table-scroll { overflow-x: auto; }
+table.data-table { width: 100%; border-collapse: collapse; min-width: 720px; }
+.data-table th { text-align: left; font-size: 10.5px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; padding: 11px 18px; border-bottom: 1px solid var(--divider); background: var(--surface-alt); white-space: nowrap; }
+.data-table th.right, .data-table td.right { text-align: right; }
+.data-table td { padding: 13px 18px; font-size: 13px; border-bottom: 1px solid var(--divider); vertical-align: middle; color: var(--text); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: var(--surface-alt); }
+.data-table .cell-primary { font-weight: 700; color: var(--text); }
+.data-table .cell-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; font-weight: 500; }
+.row-actions { display: flex; gap: 3px; justify-content: flex-end; }
+.row-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; margin-right: 10px; vertical-align: middle; flex: 0 0 auto; }
+.cell-with-avatar { display: flex; align-items: center; }
+
+.pagination { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-top: 1px solid var(--divider); gap: 12px; flex-wrap: wrap; }
+.pagination .page-info { font-size: 12px; color: var(--text-secondary); }
+.pagination .page-btns { display: flex; gap: 6px; }
+.page-btn { min-width: 30px; height: 30px; padding: 0 8px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 700; color: var(--text-secondary); background: var(--surface); border: 1px solid var(--border); }
+.page-btn:hover:not(:disabled) { background: var(--surface-alt); }
+.page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ============ Tabs (settings) ============ */
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid var(--divider); }
+.tab-btn { flex: 0 0 auto; padding: 10px 16px; font-size: 13px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; border-bottom: 2.5px solid transparent; margin-bottom: -1px; }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* ============ Loading / skeleton / empty / error ============ */
+.skeleton { background: linear-gradient(90deg, var(--divider) 25%, var(--border) 37%, var(--divider) 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; border-radius: 6px; }
+@keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+.sk-line { height: 12px; border-radius: 6px; }
+.spinner { display: inline-block; width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--divider); border-top-color: var(--primary); animation: spin 700ms linear infinite; }
+.spinner.sm { width: 16px; height: 16px; border-width: 2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.state-block { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 56px 24px; gap: 6px; }
+.state-block .state-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: var(--muted); }
+.state-block.error .state-icon { background: var(--danger-light); color: var(--danger); }
+.state-block .state-icon svg { width: 28px; height: 28px; }
+.state-block h4 { font-size: var(--text-md); font-weight: 700; color: var(--text); }
+.state-block p { font-size: 13px; color: var(--text-secondary); max-width: 300px; line-height: 1.55; }
+.state-block .btn { width: auto; margin-top: 14px; }
+
+/* ============ Overlays: modal / toast ============ */
+.overlay-backdrop { position: fixed; inset: 0; background: rgba(12,12,16,0.5); z-index: var(--z-modal); opacity: 0; pointer-events: none; transition: opacity 200ms var(--ease-standard); backdrop-filter: blur(2px); }
+.overlay-backdrop.open { opacity: 1; pointer-events: auto; }
+.modal-center-wrap { position: fixed; inset: 0; z-index: calc(var(--z-modal) + 1); display: flex; align-items: center; justify-content: center; padding: 24px; pointer-events: none; }
+.modal-card {
+  width: 100%; max-width: 320px; background: var(--surface); border-radius: var(--radius-lg); padding: 24px 22px;
+  box-shadow: var(--shadow-lg); text-align: center; transform: scale(0.94) translateY(6px); opacity: 0;
+  transition: all 200ms var(--ease-standard); pointer-events: auto;
+}
+.modal-card.open { transform: scale(1) translateY(0); opacity: 1; }
+.modal-icon { width: 52px; height: 52px; border-radius: 50%; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; }
+.modal-icon svg { width: 25px; height: 25px; }
+.modal-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 7px; letter-spacing: -0.01em; }
+.modal-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 18px; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn { flex: 1 1 0; width: auto; }
+.modal-card.form-modal { max-width: 540px; text-align: left; padding: 0; }
+.modal-card.form-modal .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 17px 22px; border-bottom: 1px solid var(--divider); }
+.modal-card.form-modal .modal-header h3 { font-size: 15.5px; font-weight: 700; margin: 0; }
+.modal-card.form-modal .modal-body { padding: 20px 22px 4px; max-height: 62vh; overflow-y: auto; }
+.modal-card.form-modal .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--divider); }
+.modal-card.form-modal .modal-footer .btn { width: auto; flex: none; }
+
+.toast-root { position: fixed; left: 0; right: 0; bottom: 24px; z-index: var(--z-toast); display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; padding: 0 16px; }
+.toast { display: flex; align-items: center; gap: 9px; background: #1D1F24; color: #fff; padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg); max-width: 380px; animation: toastIn 220ms var(--ease-standard); }
+.toast svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.toast.success { background: #14804A; }
+.toast.error { background: var(--danger); }
+.toast.info { background: #1D1F24; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+.toast.leaving { animation: toastOut 180ms var(--ease-standard) forwards; }
+@keyframes toastOut { to { opacity: 0; transform: translateY(6px); } }
+
+/* ============ Sign in (same Employee ID + OTP flow as the mobile app) ============ */
+.auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--background); padding: 24px; }
+.auth-card { width: 100%; max-width: 400px; background: var(--surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: hidden; }
+.login-screen { padding: 38px 32px 30px; display: flex; flex-direction: column; }
+.login-logo { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; color: var(--primary); filter: drop-shadow(0 6px 14px rgba(194,53,40,0.28)); }
+.login-logo svg { width: 60px; height: 60px; }
+.login-screen h1 { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; }
+.login-screen .sub { font-size: 13px; color: var(--text-secondary); margin: 5px 0 26px; line-height: 1.5; }
+.login-error-banner { display: flex; gap: 8px; align-items: flex-start; background: var(--danger-light); color: var(--danger); padding: 12px 14px; border-radius: var(--radius-md); font-size: 12.5px; font-weight: 600; margin-bottom: 16px; }
+.login-error-banner svg { width: 16px; height: 16px; flex: 0 0 auto; margin-top: 1px; }
+.demo-hint { background: var(--surface-alt); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); padding: 11px 13px; font-size: 11.5px; color: var(--text-secondary); margin-top: 20px; line-height: 1.65; }
+.login-footer { margin-top: 22px; text-align: center; font-size: 11px; color: var(--muted); }
+.otp-back-btn { align-self: flex-start; margin: -6px 0 6px -8px; color: var(--text); }
+
+/* ============ Detail panel (right-side drawer for quick inspection of a record) ============ */
+.detail-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 460px; max-width: 92vw; background: var(--surface); z-index: calc(var(--z-modal) + 1); transform: translateX(105%); transition: transform 260ms var(--ease-standard); display: flex; flex-direction: column; box-shadow: var(--shadow-lg); pointer-events: auto; }
+.detail-panel.open { transform: translateX(0); }
+.detail-panel .dp-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px; border-bottom: 1px solid var(--divider); flex: 0 0 auto; }
+.detail-panel .dp-header h3 { font-size: 16.5px; font-weight: 800; letter-spacing: -0.01em; }
+.detail-panel .dp-header .dp-sub { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+.detail-panel .dp-body { padding: 18px 22px; overflow-y: auto; flex: 1 1 auto; }
+.detail-panel .dp-footer { padding: 14px 22px; border-top: 1px solid var(--divider); flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 10px; }
+.dp-section { margin-bottom: 20px; }
+.dp-section:last-child { margin-bottom: 0; }
+.dp-section-title { font-size: 10.5px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.dp-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--divider); font-size: 13px; }
+.dp-row:last-child { border-bottom: none; }
+.dp-row .dp-k { color: var(--text-secondary); flex: 0 0 auto; }
+.dp-row .dp-v { font-weight: 700; color: var(--text); text-align: right; }
+.dp-chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ============ Mobile drawer (reuses the same drawer pattern as the phone app) ============ */
+.drawer-backdrop { position: fixed; inset: 0; background: rgba(12,12,16,0.52); z-index: var(--z-drawer); opacity: 0; pointer-events: none; transition: opacity 220ms var(--ease-standard); }
+.drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+.drawer { position: fixed; top: 0; bottom: 0; left: 0; width: 82%; max-width: 300px; background: var(--surface); z-index: calc(var(--z-drawer) + 1); transform: translateX(-105%); transition: transform 260ms var(--ease-standard); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-lg); }
+.drawer.open { transform: translateX(0); }
+.drawer-profile { background: linear-gradient(150deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; padding: 26px 20px 20px; flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.drawer-avatar { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.16); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid rgba(255,255,255,0.35); }
+.drawer-profile .name { font-size: 14.5px; font-weight: 700; }
+.drawer-profile .role { font-size: 11.5px; opacity: 0.9; margin-top: 2px; }
+.drawer-nav { flex: 1 1 auto; overflow-y: auto; padding: 10px; }
+
+/* ============ Responsive ============ */
+@media (max-width: 1180px) {
+  .kpi-grid, .kpi-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .quick-actions { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 1024px) {
+  .sidebar { display: none; }
+  .sidebar-open-btn { display: flex; }
+  .content { padding: 20px 20px 50px; }
+}
+@media (max-width: 640px) {
+  .kpi-grid, .kpi-grid.cols-3, .quick-actions { grid-template-columns: 1fr 1fr; }
+  .topbar { padding: 0 14px; gap: 8px; }
+  .topbar-search { display: none; }
+  .profile-btn .p-name, .profile-btn .p-role, .profile-btn svg.chev { display: none; }
+  .page-header { flex-direction: column; align-items: stretch; }
+  .page-header .ph-actions { justify-content: flex-end; }
+  .form-grid { grid-template-columns: 1fr; }
+  .table-toolbar { flex-direction: column; align-items: stretch; }
+  .table-toolbar .search-bar { max-width: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="auth-wrap" id="authWrap"></div>
+
+<div class="admin-shell" id="adminShell" style="display:none;">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="topbar">
+      <button class="icon-btn sidebar-open-btn" id="drawerOpenBtn" aria-label="Open menu"></button>
+      <div class="dropdown-wrap topbar-search" id="globalSearchWrap">
+        <div class="search-bar" id="globalSearch"></div>
+        <div class="dropdown-menu" id="globalSearchResults" style="width:420px;max-height:60vh;overflow-y:auto;"></div>
+      </div>
+      <div class="topbar-actions" id="topbarActions"></div>
+    </header>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-profile">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="drawer-avatar">AV</div>
+      <div><div class="name">Anita Verma</div><div class="role">Super Admin</div></div>
+    </div>
+    <button class="icon-btn" id="drawerCloseBtn" aria-label="Close menu" style="color:#fff;"></button>
+  </div>
+  <nav class="drawer-nav" id="drawerNav"></nav>
+</div>
+
+<div class="overlay-backdrop" id="overlayBackdrop"></div>
+<div class="modal-center-wrap" id="modalRoot"></div>
+<div id="detailPanelRoot"></div>
+<div class="toast-root" id="toastRoot" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+/* ==================== icons ==================== */
+const wrap = (paths, vb = '0 0 24 24') =>
+  `<svg viewBox="${vb}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+
+const meruLogoMark = `<svg viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="mmBadgeBg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E0473A"/><stop offset="0.55" stop-color="#C23528"/><stop offset="1" stop-color="#7A1810"/>
+    </linearGradient>
+    <linearGradient id="mmDrop" x1="10" y1="2" x2="24" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE873"/><stop offset="0.6" stop-color="#FAD201"/><stop offset="1" stop-color="#C99900"/>
+    </linearGradient>
+    <linearGradient id="mmLetter" x1="32" y1="24" x2="32" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F2DED9"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#mmBadgeBg)"/>
+  <path d="M20 10C24.5 15.5 26.5 19.2 26.5 22.5a6.5 6.5 0 1 1-13 0c0-3.3 2-7 6.5-12.5Z" fill="url(#mmDrop)"/>
+  <text x="38" y="49" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="30" fill="url(#mmLetter)">m</text>
+</svg>`;
+
+const icons = {
+  meruLogo: meruLogoMark,
+  menu: wrap('<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>'),
+  close: wrap('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'),
+  bell: wrap('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>'),
+  search: wrap('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'),
+  filter: wrap('<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>'),
+  home: wrap('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'),
+  chart: wrap('<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>'),
+  boxes: wrap('<path d="M2.5 8.5L12 3l9.5 5.5v7L12 21l-9.5-5.5z"/><path d="M12 12v9"/><path d="M2.5 8.5L12 12l9.5-3.5"/>'),
+  fileText: wrap('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>'),
+  user: wrap('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),
+  users: wrap('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
+  settings: wrap('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.11.35.32.66.6.9.24.2.53.34.83.4H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+  logout: wrap('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'),
+  plus: wrap('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
+  chevRight: wrap('<polyline points="9 18 15 12 9 6"/>'),
+  chevLeft: wrap('<polyline points="15 18 9 12 15 6"/>'),
+  chevDown: wrap('<polyline points="6 9 12 15 18 9"/>'),
+  check: wrap('<polyline points="20 6 9 17 4 12"/>'),
+  checkCircle: wrap('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'),
+  alertTriangle: wrap('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
+  xCircle: wrap('<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'),
+  alertCircle: wrap('<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'),
+  info: wrap('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'),
+  eye: wrap('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),
+  trend: wrap('<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>'),
+  trendDown: wrap('<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>'),
+  mail: wrap('<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22 6 12 13 2 6"/>'),
+  trash: wrap('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'),
+  edit: wrap('<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/>'),
+  shield: wrap('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'),
+  refresh: wrap('<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>'),
+  inbox: wrap('<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>'),
+  download: wrap('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'),
+  moreVertical: wrap('<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>'),
+  send: wrap('<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>'),
+  globe: wrap('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'),
+  lock: wrap('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'),
+  idCard: wrap('<rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M15 9h4M15 13h4M6 17h12"/>'),
+  truck: wrap('<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>'),
+  sun: wrap('<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'),
+  moon: wrap('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'),
+  calendar: wrap('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
+};
+function icon(name, extraClass = '') { return `<span class="icon ${extraClass}">${icons[name] || icons.info}</span>`; }
+function initials(name) { return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase(); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
+function fmtDateTime(iso) { const d = new Date(iso); return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ', ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }); }
+
+/* ==================== mock data ==================== */
+const TERRITORIES = ['Ahmedabad', 'Gandhinagar', 'Vadodara', 'Surat', 'Rajkot'];
+
+let users = [
+  { id: 'U-1001', name: 'Rajesh Kumar', email: 'rajesh.kumar@mountmerugroup.com', phone: '+91 98765 43210', role: 'TSM', territory: 'Ahmedabad', status: 'Active', lastActive: '2026-08-25T08:10:00' },
+  { id: 'U-1002', name: 'Priya Sharma', email: 'priya.sharma@mountmerugroup.com', phone: '+91 98123 45678', role: 'HOS', territory: 'All Territories', status: 'Active', lastActive: '2026-08-25T07:40:00' },
+  { id: 'U-1003', name: 'Sunil Mehta', email: 'sunil.mehta@mountmerugroup.com', phone: '+91 98220 11223', role: 'TSM', territory: 'Gandhinagar', status: 'Active', lastActive: '2026-08-24T18:05:00' },
+  { id: 'U-1004', name: 'Ravi Iyer', email: 'ravi.iyer@mountmerugroup.com', phone: '+91 98330 22334', role: 'TSM', territory: 'Vadodara', status: 'Inactive', lastActive: '2026-08-12T11:20:00' },
+  { id: 'U-1005', name: 'Bhavik Shah', email: 'bhavik.shah@mountmerugroup.com', phone: '+91 98440 33445', role: 'TSM', territory: 'Surat', status: 'Active', lastActive: '2026-08-25T06:55:00' },
+  { id: 'U-1006', name: 'Naresh Oza', email: 'naresh.oza@mountmerugroup.com', phone: '+91 98550 44556', role: 'TSM', territory: 'Rajkot', status: 'Pending', lastActive: '-' },
+  { id: 'U-1007', name: 'Kiran Patel', email: 'kiran.patel@sghighway.ro.com', phone: '+91 98661 55667', role: 'RO', territory: 'Ahmedabad', status: 'Active', lastActive: '2026-08-25T09:02:00' },
+  { id: 'U-1008', name: 'Sanjay Desai', email: 'sanjay.desai@sarkhej.ro.com', phone: '+91 98772 66778', role: 'RO', territory: 'Ahmedabad', status: 'Active', lastActive: '2026-08-24T21:15:00' },
+  { id: 'U-1009', name: 'Anita Verma', email: 'anita.verma@mountmerugroup.com', phone: '+91 98883 77889', role: 'Admin', territory: 'All Territories', status: 'Active', lastActive: '2026-08-25T09:30:00' },
+  { id: 'U-1010', name: 'Ramesh Solanki', email: 'ramesh.solanki@gnsector21.ro.com', phone: '+91 98994 88990', role: 'RO', territory: 'Gandhinagar', status: 'Inactive', lastActive: '2026-07-30T14:40:00' },
+  { id: 'U-1011', name: 'Kalpesh Mehta', email: 'kalpesh.mehta@alkapuri.ro.com', phone: '+91 99005 99001', role: 'RO', territory: 'Vadodara', status: 'Active', lastActive: '2026-08-23T10:12:00' },
+  { id: 'U-1012', name: 'Nikunj Shah', email: 'nikunj.shah@vesu.ro.com', phone: '+91 99116 00112', role: 'RO', territory: 'Surat', status: 'Pending', lastActive: '-' },
+];
+let userIdSeq = 1013;
+
+let masterData = [
+  { id: 'MD-2001', title: 'SG Highway', type: 'Outlet', code: 'RO10021', owner: 'Rajesh Kumar', status: 'Published', updatedAt: '2026-08-24T10:00:00',
+    dealer: 'Kiran Patel', tsmName: 'Rajesh Kumar', tsmPhone: '+91 98765 43210', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100000', accountNumber: 'ACC-RO10021', accountBalance: 42500 },
+  { id: 'MD-2002', title: 'Sarkhej Circle', type: 'Outlet', code: 'RO10022', owner: 'Rajesh Kumar', status: 'Published', updatedAt: '2026-08-23T15:20:00',
+    dealer: 'Sanjay Desai', tsmName: 'Rajesh Kumar', tsmPhone: '+91 98765 43210', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100001', accountNumber: 'ACC-RO10022', accountBalance: 0 },
+  { id: 'MD-2003', title: 'MS (Petrol)', type: 'Product', code: 'FUEL-MS', owner: 'Anita Verma', status: 'Published', updatedAt: '2026-08-20T09:00:00' },
+  { id: 'MD-2004', title: 'HSD (Diesel)', type: 'Product', code: 'FUEL-HSD', owner: 'Anita Verma', status: 'Published', updatedAt: '2026-08-20T09:05:00' },
+  { id: 'MD-2005', title: 'Auto LPG', type: 'Product', code: 'FUEL-LPG', owner: 'Anita Verma', status: 'Draft', updatedAt: '2026-08-18T13:40:00' },
+  { id: 'MD-2006', title: 'Festive Season Price List', type: 'Price List', code: 'PL-2608', owner: 'Priya Sharma', status: 'Published', updatedAt: '2026-08-22T11:30:00' },
+  { id: 'MD-2007', title: 'Q3 Retention Scheme', type: 'Scheme', code: 'SCH-Q3-26', owner: 'Priya Sharma', status: 'Published', updatedAt: '2026-08-19T16:00:00' },
+  { id: 'MD-2008', title: 'Koba Circle', type: 'Outlet', code: 'RO10030', owner: 'Sunil Mehta', status: 'Archived', updatedAt: '2026-06-11T09:00:00',
+    dealer: 'Ashok Prajapati', tsmName: 'Sunil Mehta', tsmPhone: '+91 98220 11223', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100009', accountNumber: 'ACC-RO10030', accountBalance: 8900 },
+  { id: 'MD-2009', title: 'CNG', type: 'Product', code: 'FUEL-CNG', owner: 'Anita Verma', status: 'Published', updatedAt: '2026-08-20T09:10:00' },
+  { id: 'MD-2010', title: 'Monsoon Safety Scheme', type: 'Scheme', code: 'SCH-MON-26', owner: 'Priya Sharma', status: 'Draft', updatedAt: '2026-08-15T12:00:00' },
+];
+let mdIdSeq = 2011;
+
+/* ---------- Indents & Inventory (mirrors the mobile app's "Indent and Inventory" screen) ---------- */
+const INDENT_STATUS_LABEL = { P: 'Payment Pending', E: 'En-route', C: 'Completed' };
+const INDENT_STEPS = ['P', 'E', 'C'];
+let indents = [
+  { id: 'IND-3001', outletName: 'SG Highway', dealerName: 'Kiran Patel', product: 'MS (Petrol)', quantity: 12000, unit: 'L', requiredDate: '2026-08-26', status: 'E' },
+  { id: 'IND-3002', outletName: 'Sarkhej Circle', dealerName: 'Sanjay Desai', product: 'HSD (Diesel)', quantity: 9000, unit: 'L', requiredDate: '2026-08-25', status: 'P' },
+  { id: 'IND-3003', outletName: 'Vastrapur', dealerName: 'Amit Trivedi', product: 'HSD (Diesel)', quantity: 15000, unit: 'L', requiredDate: '2026-08-24', status: 'C' },
+  { id: 'IND-3004', outletName: 'Koba Circle', dealerName: 'Ashok Prajapati', product: 'CNG', quantity: 4000, unit: 'Kg', requiredDate: '2026-08-27', status: 'P' },
+  { id: 'IND-3005', outletName: 'Alkapuri', dealerName: 'Kalpesh Mehta', product: 'MS (Petrol)', quantity: 10000, unit: 'L', requiredDate: '2026-08-23', status: 'C' },
+  { id: 'IND-3006', outletName: 'Vesu', dealerName: 'Nikunj Shah', product: 'Auto LPG', quantity: 3000, unit: 'Kg', requiredDate: '2026-08-28', status: 'E' },
+];
+let indentIdSeq = 3007;
+
+/* ---------- RO Audit Forms / CRA (mirrors the mobile app's "RO Audit Forms" screen) ---------- */
+let auditForms = [
+  { id: 'CRA-4001', outletName: 'SG Highway', refNo: 'REF-10021', regNo: 'GJ01-AB-1021', tsmName: 'Rajesh Kumar', divisionalManager: 'Priya Sharma', visitDate: '2026-08-24', prevVisitDate: '2026-07-18', status: 'Completed', attendeeCount: 3, photosCaptured: 2 },
+  { id: 'CRA-4002', outletName: 'Sarkhej Circle', refNo: 'REF-10022', regNo: 'GJ01-AB-1022', tsmName: 'Rajesh Kumar', divisionalManager: 'Priya Sharma', visitDate: '2026-08-20', prevVisitDate: '2026-07-10', status: 'Completed', attendeeCount: 2, photosCaptured: 2 },
+  { id: 'CRA-4003', outletName: 'Koba Circle', refNo: 'REF-10030', regNo: 'GJ18-AB-1030', tsmName: 'Sunil Mehta', divisionalManager: 'Priya Sharma', visitDate: '2026-08-22', prevVisitDate: '2026-06-15', status: 'Local (unsynced)', attendeeCount: 1, photosCaptured: 1 },
+  { id: 'CRA-4004', outletName: 'Alkapuri', refNo: 'REF-10041', regNo: 'GJ06-AB-1041', tsmName: 'Ravi Iyer', divisionalManager: 'Priya Sharma', visitDate: '2026-08-19', prevVisitDate: '2026-05-30', status: 'Overdue', attendeeCount: 0, photosCaptured: 0 },
+  { id: 'CRA-4005', outletName: 'Vesu', refNo: 'REF-10053', regNo: 'GJ05-AB-1053', tsmName: 'Bhavik Shah', divisionalManager: 'Priya Sharma', visitDate: '2026-08-21', prevVisitDate: '2026-07-01', status: 'Completed', attendeeCount: 2, photosCaptured: 2 },
+];
+
+/* ---------- RO Monthly Tracker (mirrors the mobile app's "RO Monthly Tracker" / "Pending Tasks" screens) ---------- */
+let monthlyTracker = [
+  { outletName: 'SG Highway', tsmName: 'Rajesh Kumar', month: 'August 2026', percentage: 100, completed: true, openPoints: [] },
+  { outletName: 'Sarkhej Circle', tsmName: 'Rajesh Kumar', month: 'August 2026', percentage: 60, completed: false, openPoints: ['Fire safety equipment tag expired', 'Canopy lighting not functional'] },
+  { outletName: 'Vastrapur', tsmName: 'Rajesh Kumar', month: 'August 2026', percentage: 0, completed: false, openPoints: ['Full checklist pending'] },
+  { outletName: 'Koba Circle', tsmName: 'Sunil Mehta', month: 'August 2026', percentage: 40, completed: false, openPoints: ['Price board not updated', 'Washroom cleanliness below standard'] },
+  { outletName: 'Alkapuri', tsmName: 'Ravi Iyer', month: 'August 2026', percentage: 100, completed: true, openPoints: [] },
+  { outletName: 'Vesu', tsmName: 'Bhavik Shah', month: 'August 2026', percentage: 80, completed: false, openPoints: ['Fire extinguisher refill due'] },
+];
+
+let reports = [
+  { id: 'RPT-501', name: 'Weekly Sales Summary', type: 'Sales', dateRange: '18 Aug - 24 Aug 2026', generatedBy: 'Priya Sharma', generatedAt: '2026-08-24T18:00:00', status: 'Ready', sizeKb: 482 },
+  { id: 'RPT-502', name: 'Ahmedabad Territory Audit', type: 'Audit', dateRange: 'Aug 2026', generatedBy: 'Rajesh Kumar', generatedAt: '2026-08-23T09:30:00', status: 'Ready', sizeKb: 1204 },
+  { id: 'RPT-503', name: 'Inventory Health Report', type: 'Inventory', dateRange: '24 Aug 2026', generatedBy: 'Anita Verma', generatedAt: '2026-08-24T07:15:00', status: 'Ready', sizeKb: 331 },
+  { id: 'RPT-504', name: 'Indent Fulfilment Report', type: 'Indent', dateRange: 'Aug 2026', generatedBy: 'Sunil Mehta', generatedAt: '2026-08-22T14:45:00', status: 'Failed', sizeKb: 0 },
+  { id: 'RPT-505', name: 'mPOS Reconciliation', type: 'Sales', dateRange: '17 Aug 2026', generatedBy: 'Priya Sharma', generatedAt: '2026-08-17T20:10:00', status: 'Ready', sizeKb: 276 },
+];
+let rptIdSeq = 506;
+const WEEKLY_REPORT_COUNTS = [ ['Mon', 6], ['Tue', 9], ['Wed', 5], ['Thu', 11], ['Fri', 8], ['Sat', 4], ['Sun', 3] ];
+
+let notifications = [
+  { id: 'N-901', title: 'Low stock at SG Highway', desc: 'HSD stock has dropped below the reorder threshold.', audience: 'TSM - Ahmedabad', type: 'warning', unread: true, time: '2026-08-25T08:20:00' },
+  { id: 'N-902', title: 'New RO onboarded', desc: 'Koba Circle outlet has completed onboarding and is live.', audience: 'All Admins', type: 'success', unread: true, time: '2026-08-24T17:05:00' },
+  { id: 'N-903', title: 'Audit form overdue', desc: '3 retail outlets have an overdue Channel Retail Audit form.', audience: 'HOS', type: 'danger', unread: true, time: '2026-08-24T11:40:00' },
+  { id: 'N-904', title: 'Monthly tracker submitted', desc: 'Rajesh Kumar submitted the RO Monthly Tracker for July.', audience: 'HOS', type: 'info', unread: false, time: '2026-08-20T09:00:00' },
+  { id: 'N-905', title: 'Scheduled maintenance', desc: 'Master sync will be unavailable 11 PM - 12 AM tonight.', audience: 'All Users', type: 'info', unread: false, time: '2026-08-18T16:00:00' },
+];
+let notifIdSeq = 906;
+
+/* ---------- Activity / Audit Log: every mutating admin action in this session is recorded here
+   via logActivity(), seeded with a short history so the log isn't empty on first load. ---------- */
+let activityLog = [
+  { id: 'ACT-1', user: 'Anita Verma', module: 'Users', action: 'Create', entity: 'Kalpesh Mehta (U-1011)', time: '2026-08-23T10:05:00' },
+  { id: 'ACT-2', user: 'Priya Sharma', module: 'Content / Data', action: 'Publish', entity: 'Festive Season Price List', time: '2026-08-22T11:31:00' },
+  { id: 'ACT-3', user: 'Anita Verma', module: 'Content / Data', action: 'Archive', entity: 'Koba Circle', time: '2026-06-11T09:01:00' },
+  { id: 'ACT-4', user: 'Sunil Mehta', module: 'Operations', action: 'Submit', entity: 'CRA audit for Koba Circle (local, unsynced)', time: '2026-08-22T16:40:00' },
+  { id: 'ACT-5', user: 'Rajesh Kumar', module: 'Operations', action: 'Submit', entity: 'Monthly Tracker for SG Highway (August 2026)', time: '2026-08-20T09:00:00' },
+];
+let activityIdSeq = 6;
+function logActivity(module, action, entity) {
+  activityLog.unshift({ id: `ACT-${activityIdSeq++}`, user: CURRENT_ADMIN.name, module, action, entity, time: new Date().toISOString() });
+}
+
+/* ==================== app state ==================== */
+const NAV_GROUPS = [
+  { section: 'Main', items: [
+    { route: 'dashboard', label: 'Dashboard', icon: 'home' },
+  ] },
+  { section: 'Operations', items: [
+    { route: 'content', label: 'Outlets & Master Data', icon: 'boxes' },
+    { route: 'tsm', label: 'TSM Management', icon: 'truck' },
+    { route: 'operations', label: 'Field Operations', icon: 'shield', badgeFn: () => buildPendingTasks().length },
+  ] },
+  { section: 'Management', items: [
+    { route: 'users', label: 'Users', icon: 'users' },
+  ] },
+  { section: 'Finance', items: [
+    { route: 'accounts', label: 'Accounts & Outstanding', icon: 'idCard' },
+  ] },
+  { section: 'Reports', items: [
+    { route: 'reports', label: 'Reports & Analytics', icon: 'chart' },
+  ] },
+  { section: 'Administration', items: [
+    { route: 'activity', label: 'Activity Log', icon: 'fileText' },
+    { route: 'notifications', label: 'Notifications', icon: 'bell', badgeFn: () => notifications.filter(n => n.unread).length },
+    { route: 'settings', label: 'Settings', icon: 'settings' },
+  ] },
+];
+const NAV_ITEMS = NAV_GROUPS.flatMap(g => g.items);
+// Same sign-in identities as the mobile app (Employee ID + OTP, no password) so the two demo
+// accounts that already exist there also work here.
+const AUTH_USERS = [
+  { id: '10088888', name: 'Anita Verma', role: 'Super Admin', designation: 'Platform Administrator', email: 'anita.verma@mountmerugroup.com' },
+  { id: '10012345', name: 'Rajesh Kumar', role: 'TSM', designation: 'Territory Sales Manager', email: 'rajesh.kumar@mountmerugroup.com' },
+  { id: '10099999', name: 'Priya Sharma', role: 'HOS', designation: 'Divisional Manager', email: 'priya.sharma@mountmerugroup.com' },
+];
+let CURRENT_ADMIN = AUTH_USERS[0];
+
+const state = {
+  authenticated: false,
+  auth: { step: 'id', empId: '', otp: '', loading: false, error: '', matchedUser: null },
+  route: 'dashboard',
+  theme: 'light',
+  sidebarCollapsed: false,
+  usersTab: 'directory',
+  rolesTab: 'Admin',
+  users: { search: '', role: 'all', status: 'all', page: 1, pageSize: 7, loading: true, loaded: false },
+  content: { search: '', type: 'all', status: 'all', page: 1, pageSize: 7, loading: true, loaded: false },
+  operations: { tab: 'tasks', trackerFilter: 'all', page: 1, pageSize: 6, loading: true, loaded: false },
+  reports: { type: 'all', page: 1, pageSize: 6, loading: true, loaded: false, generating: false, genError: false },
+  activity: { module: 'all', search: '' },
+  notifications: { filter: 'all', loading: true, loaded: false },
+  settingsTab: 'general',
+  sync: { running: false, step1Done: true, step2Done: true, lastSync: '2026-08-24T09:00:00' },
+};
+
+/* ==================== small helpers ==================== */
+function paginate(rows, page, pageSize) {
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const p = Math.min(Math.max(1, page), totalPages);
+  return { rows: rows.slice((p - 1) * pageSize, p * pageSize), page: p, totalPages, total };
+}
+function statusBadgeClass(status) {
+  return { Active: 'badge-success', Published: 'badge-success', Ready: 'badge-success', Completed: 'badge-success',
+    Inactive: 'badge-muted', Archived: 'badge-muted',
+    Pending: 'badge-warning', Draft: 'badge-warning', 'Local (unsynced)': 'badge-warning', 'In Progress': 'badge-warning', 'Payment Pending': 'badge-warning',
+    'En-route': 'badge-info',
+    Failed: 'badge-danger', Suspended: 'badge-danger', Overdue: 'badge-danger', 'Not Started': 'badge-danger' }[status] || 'badge-muted';
+}
+
+/* ==================== toast ==================== */
+function showToast(type, message) {
+  const root = document.getElementById('toastRoot');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const ic = type === 'success' ? 'checkCircle' : type === 'error' ? 'xCircle' : 'info';
+  el.innerHTML = `${icons[ic]}<span>${esc(message)}</span>`;
+  root.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('leaving');
+    setTimeout(() => el.remove(), 200);
+  }, 3200);
+}
+
+/* ==================== modal ==================== */
+function closeModal() {
+  document.getElementById('overlayBackdrop').classList.remove('open');
+  const root = document.getElementById('modalRoot');
+  const card = root.querySelector('.modal-card');
+  if (card) card.classList.remove('open');
+  setTimeout(() => { root.innerHTML = ''; }, 180);
+}
+function openConfirm({ title, message, confirmLabel = 'Confirm', danger = false, iconName = 'alertTriangle', onConfirm }) {
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+    <div class="modal-card">
+      <div class="modal-icon" style="background:${danger ? 'var(--danger-light)' : 'var(--warning-light)'};color:${danger ? 'var(--danger)' : 'var(--warning)'};">${icons[iconName]}</div>
+      <h3>${esc(title)}</h3>
+      <p>${esc(message)}</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" data-close-modal>Cancel</button>
+        <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" id="modalConfirmBtn">${esc(confirmLabel)}</button>
+      </div>
+    </div>`;
+  document.getElementById('overlayBackdrop').classList.add('open');
+  requestAnimationFrame(() => root.querySelector('.modal-card').classList.add('open'));
+  root.querySelector('#modalConfirmBtn').addEventListener('click', () => { closeModal(); onConfirm(); });
+}
+function openFormModal({ title, bodyHtml, submitLabel = 'Save', onSubmit }) {
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+    <div class="modal-card form-modal">
+      <div class="modal-header"><h3>${esc(title)}</h3><button class="icon-btn" data-close-modal aria-label="Close">${icons.close}</button></div>
+      <form id="modalForm">
+        <div class="modal-body">${bodyHtml}</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary">${esc(submitLabel)}</button>
+        </div>
+      </form>
+    </div>`;
+  document.getElementById('overlayBackdrop').classList.add('open');
+  requestAnimationFrame(() => root.querySelector('.modal-card').classList.add('open'));
+  root.querySelector('#modalForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    onSubmit(new FormData(e.target));
+  });
+}
+
+/* ==================== detail panel (right-side drawer for quick record inspection) ==================== */
+function closeDetailPanel() {
+  document.getElementById('overlayBackdrop').classList.remove('open');
+  const root = document.getElementById('detailPanelRoot');
+  const panel = root.querySelector('.detail-panel');
+  if (panel) panel.classList.remove('open');
+  setTimeout(() => { root.innerHTML = ''; }, 220);
+}
+function openDetailPanel({ title, subtitle = '', bodyHtml, footerHtml = `<button class="btn btn-outline" data-close-modal>Close</button>` }) {
+  const root = document.getElementById('detailPanelRoot');
+  root.innerHTML = `
+    <div class="detail-panel">
+      <div class="dp-header">
+        <div><h3>${esc(title)}</h3>${subtitle ? `<div class="dp-sub">${esc(subtitle)}</div>` : ''}</div>
+        <button class="icon-btn" data-close-modal aria-label="Close">${icons.close}</button>
+      </div>
+      <div class="dp-body">${bodyHtml}</div>
+      <div class="dp-footer">${footerHtml}</div>
+    </div>`;
+  document.getElementById('overlayBackdrop').classList.add('open');
+  requestAnimationFrame(() => root.querySelector('.detail-panel').classList.add('open'));
+}
+function dpSection(title, rows) {
+  return `<div class="dp-section">${title ? `<div class="dp-section-title">${esc(title)}</div>` : ''}${rows.map(([k, v]) => `<div class="dp-row"><span class="dp-k">${esc(k)}</span><span class="dp-v">${v}</span></div>`).join('')}</div>`;
+}
+
+/* ==================== theme ==================== */
+function applyTheme(theme) {
+  state.theme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem('mm-admin-theme', theme); } catch (e) { /* private browsing / storage disabled */ }
+}
+function toggleTheme() {
+  applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+  renderTopbar();
+}
+
+/* ==================== shell: sidebar / drawer / topbar ==================== */
+function navItemHtml(it, activeRoute, collapsed) {
+  const badge = it.badgeFn ? it.badgeFn() : 0;
+  return `
+    <a href="#${it.route}" class="sidebar-nav-item ${activeRoute === it.route ? 'active' : ''}" data-route="${it.route}" title="${collapsed ? esc(it.label) : ''}">
+      ${icons[it.icon]}<span>${it.label}</span>
+      ${badge ? `<span class="badge badge-danger" style="margin-left:auto;flex:0 0 auto;">${badge}</span>` : ''}
+    </a>`;
+}
+function navHtml(activeRoute, collapsed) {
+  return NAV_GROUPS.map(g => `
+    <div class="sidebar-section-label">${g.section}</div>
+    ${g.items.map(it => navItemHtml(it, activeRoute, collapsed)).join('')}
+  `).join('');
+}
+function drawerNavHtml(activeRoute) {
+  return NAV_GROUPS.map(g => `
+    <div class="sidebar-section-label">${g.section}</div>
+    ${g.items.map(it => navItemHtml(it, activeRoute, false)).join('')}
+  `).join('');
+}
+function renderSidebar() {
+  const el = document.getElementById('sidebar');
+  el.className = `sidebar ${state.sidebarCollapsed ? 'collapsed' : ''}`;
+  el.innerHTML = `
+    <div class="sidebar-brand">${icons.meruLogo}<div class="brand-text">Mount Meru<small>Admin Panel</small></div></div>
+    <nav class="sidebar-nav">${navHtml(state.route, state.sidebarCollapsed)}</nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-collapse-btn" id="collapseBtn">${icons.chevLeft}<span>Collapse</span></button>
+    </div>`;
+  document.getElementById('drawerNav').innerHTML = drawerNavHtml(state.route);
+}
+function renderTopbar() {
+  document.getElementById('globalSearch').innerHTML = `${icons.search}<input type="text" placeholder="Search users, outlets, indents, audits..." id="globalSearchInput" autocomplete="off" /><span style="font-size:10.5px;font-weight:700;color:var(--muted);background:var(--surface-alt);border:1px solid var(--border);border-radius:5px;padding:2px 6px;flex:0 0 auto;">Ctrl K</span>`;
+  const unread = notifications.filter(n => n.unread).length;
+  document.getElementById('topbarActions').innerHTML = `
+    <button class="icon-btn" id="themeToggleBtn" title="Toggle dark mode">${icons[state.theme === 'dark' ? 'sun' : 'moon']}</button>
+    <div class="dropdown-wrap" id="notifWrap">
+      <button class="icon-btn header-badge-wrap" id="notifBtn" aria-label="Notifications">${icons.bell}${unread ? `<span class="header-badge">${unread}</span>` : ''}</button>
+      <div class="dropdown-menu notif-panel" id="notifDropdown"></div>
+    </div>
+    <div class="dropdown-wrap" id="profileWrap">
+      <button class="profile-btn" id="profileBtn">
+        <div class="profile-avatar">${initials(CURRENT_ADMIN.name)}</div>
+        <div><div class="p-name">${CURRENT_ADMIN.name}</div><div class="p-role">${CURRENT_ADMIN.role}</div></div>
+        <span class="chev">${icons.chevDown}</span>
+      </button>
+      <div class="dropdown-menu" id="profileDropdown">
+        <div class="dropdown-header"><div class="dh-name">${CURRENT_ADMIN.name}</div><div class="dh-email">${CURRENT_ADMIN.email}</div></div>
+        <a href="#settings" class="dd-item" data-route="settings">${icons.user}Profile</a>
+        <a href="#settings" class="dd-item" data-route="settings">${icons.settings}Settings</a>
+        <div class="dd-divider"></div>
+        <button class="dd-item danger" id="logoutBtn">${icons.logout}Sign out</button>
+      </div>
+    </div>`;
+  renderNotifPanel();
+}
+function renderNotifPanel() {
+  const recent = notifications.slice(0, 5);
+  document.getElementById('notifDropdown').innerHTML = `
+    <div class="np-header"><h4>Notifications</h4><button id="markAllReadBtn">Mark all read</button></div>
+    <div class="np-list">
+      ${recent.length ? recent.map(n => notifMiniHtml(n)).join('') : `<div class="state-block" style="padding:28px 12px;"><p>You're all caught up.</p></div>`}
+    </div>
+    <div class="np-footer"><a href="#notifications" data-route="notifications">View all notifications</a></div>`;
+}
+function runGlobalSearch(query) {
+  const dd = document.getElementById('globalSearchResults');
+  dd.classList.add('open');
+  const q = query.trim().toLowerCase();
+  if (!q) { dd.innerHTML = `<div style="padding:16px;font-size:12.5px;color:var(--text-secondary);">Type to search users, outlets, indents and audit forms.</div>`; return; }
+  const groups = [
+    { label: 'Users', action: 'view-user', items: users.filter(u => `${u.name} ${u.email} ${u.id}`.toLowerCase().includes(q)).slice(0, 4).map(u => ({ id: u.id, primary: u.name, sub: `${u.role} · ${u.email}` })) },
+    { label: 'Outlets', action: 'view-content', items: masterData.filter(m => m.type === 'Outlet' && `${m.title} ${m.code}`.toLowerCase().includes(q)).slice(0, 4).map(m => ({ id: m.id, primary: m.title, sub: `${m.code} · ${m.owner}` })) },
+    { label: 'Indents', action: 'view-indent', items: indents.filter(i => `${i.id} ${i.outletName} ${i.dealerName}`.toLowerCase().includes(q)).slice(0, 4).map(i => ({ id: i.id, primary: i.id, sub: `${i.outletName} · ${INDENT_STATUS_LABEL[i.status]}` })) },
+    { label: 'Audit Forms', action: 'view-audit', items: auditForms.filter(a => `${a.outletName} ${a.refNo} ${a.tsmName}`.toLowerCase().includes(q)).slice(0, 4).map(a => ({ id: a.id, primary: a.outletName, sub: `${a.refNo} · ${a.status}` })) },
+  ].filter(g => g.items.length);
+  if (!groups.length) { dd.innerHTML = `<div style="padding:16px;font-size:12.5px;color:var(--text-secondary);">No matches for "${esc(query)}".</div>`; return; }
+  dd.innerHTML = groups.map(g => `
+    <div style="padding:8px 10px 4px;font-size:10.5px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;">${g.label}</div>
+    ${g.items.map(it => `<button class="dd-item" data-action="${g.action}" data-id="${it.id}" data-close-search style="flex-direction:column;align-items:flex-start;gap:1px;"><span>${esc(it.primary)}</span><span style="font-size:11px;color:var(--text-secondary);font-weight:500;">${esc(it.sub)}</span></button>`).join('')}
+  `).join('');
+}
+function notifMiniHtml(n) {
+  const colors = { info: ['var(--info-light)', 'var(--info)', 'info'], success: ['var(--success-light)', 'var(--success)', 'checkCircle'], warning: ['var(--warning-light)', 'var(--warning)', 'alertTriangle'], danger: ['var(--danger-light)', 'var(--danger)', 'alertTriangle'] };
+  const [bg, fg, ic] = colors[n.type] || colors.info;
+  return `<div style="display:flex;gap:10px;padding:10px;border-radius:var(--radius-sm);${n.unread ? 'background:var(--primary-tint);' : ''}">
+    <div style="width:32px;height:32px;border-radius:50%;background:${bg};color:${fg};display:flex;align-items:center;justify-content:center;flex:0 0 auto;">${icons[ic]}</div>
+    <div style="min-width:0;">
+      <div style="font-size:12.5px;font-weight:700;">${esc(n.title)}</div>
+      <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">${esc(n.desc)}</div>
+    </div>
+  </div>`;
+}
+
+/* ==================== page: dashboard ==================== */
+function renderDashboard() {
+  const totalTsms = users.filter(u => u.role === 'TSM').length;
+  const outlets = masterData.filter(m => m.type === 'Outlet');
+  const totalOutstanding = outlets.reduce((sum, o) => sum + (o.accountBalance || 0), 0);
+  const pendingTasks = buildPendingTasks();
+  const pendingAudits = auditForms.filter(a => a.status !== 'Completed').length;
+  const avgTracker = Math.round(monthlyTracker.reduce((s, r) => s + r.percentage, 0) / monthlyTracker.length);
+  const maxCount = Math.max(...WEEKLY_REPORT_COUNTS.map(r => r[1]));
+  const indentCounts = INDENT_STEPS.map(st => indents.filter(i => i.status === st).length);
+  const maxIndent = Math.max(...indentCounts, 1);
+
+  return `
+    <div class="page-header">
+      <div><h1>Dashboard</h1><div class="sub">Welcome back, ${CURRENT_ADMIN.name.split(' ')[0]}. Here's what's happening across Mount Meru today.</div></div>
+      <div class="ph-actions">
+        <button class="btn btn-outline" data-action="qa-add-user">${icons.plus}Add User</button>
+        <button class="btn btn-primary" data-action="qa-generate-report">${icons.chart}Generate Report</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid" style="margin-bottom:16px;">
+      ${kpiCard('users', 'Total Users', users.length, 'up', `${totalTsms} TSMs`)}
+      ${kpiCard('boxes', 'Total Outlets', outlets.length, 'up', `${masterData.filter(m => m.status === 'Published').length} published items`)}
+      ${kpiCard('fileText', 'Pending Tasks', pendingTasks.length, pendingTasks.length ? 'down' : 'up', pendingTasks.length ? 'across operations' : 'all clear')}
+      ${kpiCard('alertCircle', 'Total Outstanding', `₹${totalOutstanding.toLocaleString('en-IN')}`, totalOutstanding ? 'down' : 'up', `${outlets.filter(o => o.accountBalance > 0).length} outlets`)}
+    </div>
+
+    <div class="kpi-grid" style="margin-bottom:22px;">
+      ${kpiCard('shield', 'Pending Audit Forms', pendingAudits, pendingAudits ? 'down' : 'up', 'RO Audit Forms (CRA)')}
+      ${kpiCard('checkCircle', 'Monthly Tracker Compliance', `${avgTracker}%`, avgTracker >= 80 ? 'up' : 'down', `${monthlyTracker.filter(r => r.completed).length}/${monthlyTracker.length} outlets complete`)}
+      ${kpiCard('chart', 'Reports Generated', reports.length, 'up', 'this month')}
+      ${kpiCard('bell', 'Unread Notifications', notifications.filter(n => n.unread).length, 'down', 'needs attention')}
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title">Reports generated this week</div>
+        <div class="bar-chart">
+          ${WEEKLY_REPORT_COUNTS.map(([d, c]) => `
+            <div class="bar-col">
+              <div class="bar" style="height:${Math.max(6, Math.round((c / maxCount) * 100))}%;" title="${c} reports"></div>
+              <div class="bar-label">${d}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Indent status breakdown</div>
+        <div class="bar-chart">
+          ${INDENT_STEPS.map((st, i) => `
+            <div class="bar-col">
+              <div class="bar" style="height:${Math.max(6, Math.round((indentCounts[i] / maxIndent) * 100))}%;background:${st === 'C' ? 'var(--success)' : st === 'E' ? 'var(--info)' : 'var(--warning)'};" title="${indentCounts[i]} indents"></div>
+              <div class="bar-label">${INDENT_STATUS_LABEL[st]}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:20px;">
+      <div class="card">
+        <div class="section-title">Recent activity <span class="link" data-route="activity" style="cursor:pointer;">View log</span></div>
+        <div class="timeline">
+          ${activityLog.slice(0, 5).map((a, i) => `<div class="timeline-item ${i === 0 ? 'active' : 'done'}"><div class="t-title">${esc(a.user)} &middot; ${esc(a.action)} &middot; ${esc(a.entity)}</div><div class="t-time">${fmtDateTime(a.time)}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="card" style="background:#24262B;color:#fff;">
+        <div class="section-title" style="color:rgba(255,255,255,0.6);">Total Outstanding Amount</div>
+        <div style="font-size:26px;font-weight:800;">₹${totalOutstanding.toLocaleString('en-IN')}</div>
+        <div style="font-size:12px;opacity:0.7;margin-top:4px;margin-bottom:14px;">${outlets.filter(o => o.accountBalance > 0).length} outlet${outlets.filter(o => o.accountBalance > 0).length === 1 ? '' : 's'} with a pending balance</div>
+        ${outlets.filter(o => o.accountBalance > 0).sort((a, b) => b.accountBalance - a.accountBalance).slice(0, 4).map(o => `
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid rgba(255,255,255,0.1);font-size:12.5px;">
+            <span>${esc(o.title)}</span><strong>₹${o.accountBalance.toLocaleString('en-IN')}</strong>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div style="margin-top:22px;">
+      <div class="section-title">Quick actions</div>
+      <div class="quick-actions">
+        <button class="quick-action" data-action="qa-add-user"><div class="qa-icon">${icons.plus}</div>Add User</button>
+        <button class="quick-action" data-action="qa-add-content"><div class="qa-icon">${icons.boxes}</div>Add Data Item</button>
+        <button class="quick-action" data-action="qa-generate-report"><div class="qa-icon">${icons.chart}</div>Generate Report</button>
+        <button class="quick-action" data-action="qa-send-notif"><div class="qa-icon">${icons.send}</div>Send Notification</button>
+        <button class="quick-action" data-action="qa-review-tasks"><div class="qa-icon">${icons.shield}</div>Review Pending Tasks</button>
+        <button class="quick-action" data-action="qa-master-sync"><div class="qa-icon">${icons.refresh}</div>Master Sync</button>
+      </div>
+    </div>`;
+}
+function kpiCard(iconName, label, value, trend, trendLabel) {
+  return `<div class="kpi-card">
+    <div class="kpi-top"><div class="kpi-icon">${icons[iconName]}</div></div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-trend ${trend}">${icons[trend === 'up' ? 'trend' : 'trendDown']}${trendLabel}</div>
+  </div>`;
+}
+
+/* ==================== page: users ==================== */
+function filteredUsers() {
+  const s = state.users;
+  return users.filter(u => {
+    if (s.role !== 'all' && u.role !== s.role) return false;
+    if (s.status !== 'all' && u.status !== s.status) return false;
+    if (s.search && !(`${u.name} ${u.email} ${u.id}`.toLowerCase().includes(s.search.toLowerCase()))) return false;
+    return true;
+  });
+}
+const USERS_TABS = [
+  { key: 'directory', label: 'User Directory' },
+  { key: 'roles', label: 'Roles & Permissions' },
+];
+function renderUsersPage() {
+  const s = state.users;
+  return `
+    <div class="page-header">
+      <div><h1>Users</h1><div class="sub">Manage TSM, HOS, RO and Admin accounts, and what each role is allowed to do.</div></div>
+      ${state.usersTab === 'directory' ? `<div class="ph-actions"><button class="btn btn-primary" data-action="add-user">${icons.plus}Add User</button></div>` : ''}
+    </div>
+    <div class="tabs">${USERS_TABS.map(t => `<button class="tab-btn ${state.usersTab === t.key ? 'active' : ''}" data-users-tab="${t.key}">${t.label}</button>`).join('')}</div>
+    ${state.usersTab === 'roles' ? renderRolesMatrix() : `
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-bar" style="max-width:280px;">${icons.search}<input type="text" id="userSearchInput" placeholder="Search name, email, ID" value="${esc(s.search)}" /></div>
+        <div class="tt-filters">
+          <select class="input" id="userRoleFilter">
+            <option value="all">All roles</option>
+            ${['TSM', 'HOS', 'RO', 'Admin'].map(r => `<option value="${r}" ${s.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+          </select>
+          <select class="input" id="userStatusFilter">
+            <option value="all">All statuses</option>
+            ${['Active', 'Inactive', 'Pending'].map(v => `<option value="${v}" ${s.status === v ? 'selected' : ''}>${v}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div id="usersTableWrap">${s.loading ? tableSkeleton(6) : renderUsersTableBody()}</div>
+    </div>`}`;
+}
+const PERMISSION_COLUMNS = ['View', 'Create', 'Edit', 'Delete', 'Approve'];
+const ROLE_PERMISSIONS = {
+  Admin: { Users: ['View', 'Create', 'Edit', 'Delete'], Outlets: ['View', 'Create', 'Edit', 'Delete'], 'Audit Forms': ['View', 'Edit', 'Approve'], 'Monthly Tracker': ['View', 'Edit', 'Approve'], Indents: ['View', 'Edit', 'Approve'], Reports: ['View'], Settings: ['View', 'Edit'] },
+  HOS: { Users: ['View'], Outlets: ['View', 'Edit'], 'Audit Forms': ['View', 'Approve'], 'Monthly Tracker': ['View', 'Approve'], Indents: ['View', 'Approve'], Reports: ['View'], Settings: [] },
+  TSM: { Users: [], Outlets: ['View'], 'Audit Forms': ['View', 'Create', 'Edit'], 'Monthly Tracker': ['View', 'Create', 'Edit'], Indents: ['View', 'Create'], Reports: ['View'], Settings: [] },
+  RO: { Users: [], Outlets: ['View'], 'Audit Forms': [], 'Monthly Tracker': [], Indents: ['View'], Reports: [], Settings: [] },
+};
+function renderRolesMatrix() {
+  const role = state.rolesTab || 'Admin';
+  const perms = ROLE_PERMISSIONS[role];
+  return `
+    <div class="table-card">
+      <div class="table-toolbar"><div class="chip-row">${Object.keys(ROLE_PERMISSIONS).map(r => `<button class="chip ${role === r ? 'active' : ''}" data-role-tab="${r}">${r}</button>`).join('')}</div></div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Module</th>${PERMISSION_COLUMNS.map(c => `<th style="text-align:center;">${c}</th>`).join('')}</tr></thead>
+          <tbody>
+            ${Object.keys(perms).map(mod => `
+              <tr>
+                <td class="cell-primary">${esc(mod)}</td>
+                ${PERMISSION_COLUMNS.map(c => `<td style="text-align:center;">${perms[mod].includes(c) ? `<span style="color:var(--success);">${icons.check}</span>` : `<span style="color:var(--muted);">&mdash;</span>`}</td>`).join('')}
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+function renderUsersTableBody() {
+  const rows = filteredUsers();
+  if (!rows.length) return emptyState('users', 'No users found', 'Try adjusting your search or filters.');
+  const { rows: pageRows, page, totalPages, total } = paginate(rows, state.users.page, state.users.pageSize);
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>User</th><th>Role</th><th>Territory</th><th>Status</th><th>Last active</th><th class="right">Actions</th></tr></thead>
+        <tbody>
+          ${pageRows.map(u => `
+            <tr>
+              <td><div class="cell-with-avatar"><div class="row-avatar">${initials(u.name)}</div><div><div class="cell-primary">${esc(u.name)}</div><div class="cell-sub">${esc(u.email)}</div></div></div></td>
+              <td>${esc(u.role)}</td>
+              <td>${esc(u.territory)}</td>
+              <td><span class="badge ${statusBadgeClass(u.status)}"><span class="badge-dot"></span>${u.status}</span></td>
+              <td>${u.lastActive === '-' ? '-' : fmtDateTime(u.lastActive)}</td>
+              <td class="right">
+                <div class="row-actions">
+                  <button class="icon-btn-sm" title="View" data-action="view-user" data-id="${u.id}">${icons.eye}</button>
+                  <button class="icon-btn-sm" title="Edit" data-action="edit-user" data-id="${u.id}">${icons.edit}</button>
+                  <button class="icon-btn-sm" title="${u.status === 'Active' ? 'Deactivate' : 'Activate'}" data-action="toggle-user" data-id="${u.id}">${icons[u.status === 'Active' ? 'xCircle' : 'checkCircle']}</button>
+                  <button class="icon-btn-sm danger" title="Delete" data-action="delete-user" data-id="${u.id}">${icons.trash}</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${paginationHtml('users', page, totalPages, total, pageRows.length)}`;
+}
+
+/* ==================== page: content / data management ==================== */
+function filteredContent() {
+  const s = state.content;
+  return masterData.filter(m => {
+    if (s.type !== 'all' && m.type !== s.type) return false;
+    if (s.status !== 'all' && m.status !== s.status) return false;
+    if (s.search && !(`${m.title} ${m.code}`.toLowerCase().includes(s.search.toLowerCase()))) return false;
+    return true;
+  });
+}
+function renderContentPage() {
+  const s = state.content;
+  return `
+    <div class="page-header">
+      <div><h1>Outlets &amp; Master Data</h1><div class="sub">Retail outlets, fuel products, price lists and schemes that power the field app.</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" data-action="add-content">${icons.plus}Add Item</button></div>
+    </div>
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-bar" style="max-width:280px;">${icons.search}<input type="text" id="contentSearchInput" placeholder="Search title or code" value="${esc(s.search)}" /></div>
+        <div class="tt-filters">
+          <select class="input" id="contentTypeFilter">
+            <option value="all">All types</option>
+            ${['Outlet', 'Product', 'Price List', 'Scheme'].map(t => `<option value="${t}" ${s.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+          </select>
+          <select class="input" id="contentStatusFilter">
+            <option value="all">All statuses</option>
+            ${['Published', 'Draft', 'Archived'].map(v => `<option value="${v}" ${s.status === v ? 'selected' : ''}>${v}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div id="contentTableWrap">${s.loading ? tableSkeleton(6) : renderContentTableBody()}</div>
+    </div>`;
+}
+function renderContentTableBody() {
+  const rows = filteredContent();
+  if (!rows.length) return emptyState('boxes', 'No data items found', 'Try a different search term or clear your filters.');
+  const { rows: pageRows, page, totalPages, total } = paginate(rows, state.content.page, state.content.pageSize);
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Title</th><th>Type</th><th>Code</th><th>Owner</th><th>Status</th><th>Updated</th><th class="right">Actions</th></tr></thead>
+        <tbody>
+          ${pageRows.map(m => `
+            <tr>
+              <td class="cell-primary">${esc(m.title)}</td>
+              <td>${esc(m.type)}</td>
+              <td>${esc(m.code)}</td>
+              <td>${esc(m.owner)}</td>
+              <td><span class="badge ${statusBadgeClass(m.status)}"><span class="badge-dot"></span>${m.status}</span></td>
+              <td>${fmtDate(m.updatedAt)}</td>
+              <td class="right">
+                <div class="row-actions">
+                  <button class="icon-btn-sm" title="View" data-action="view-content" data-id="${m.id}">${icons.eye}</button>
+                  <button class="icon-btn-sm" title="Edit" data-action="edit-content" data-id="${m.id}">${icons.edit}</button>
+                  <button class="icon-btn-sm" title="${m.status === 'Archived' ? 'Publish' : 'Archive'}" data-action="toggle-content" data-id="${m.id}">${icons[m.status === 'Archived' ? 'checkCircle' : 'xCircle']}</button>
+                  <button class="icon-btn-sm danger" title="Delete" data-action="delete-content" data-id="${m.id}">${icons.trash}</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${paginationHtml('content', page, totalPages, total, pageRows.length)}`;
+}
+
+/* ==================== page: TSM management ==================== */
+function renderTsmPage() {
+  const tsms = users.filter(u => u.role === 'TSM');
+  return `
+    <div class="page-header">
+      <div><h1>TSM Management</h1><div class="sub">Territory Sales Managers, their assigned outlets and field-activity summary.</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" data-action="add-user">${icons.plus}Add TSM</button></div>
+    </div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>TSM</th><th>Territory</th><th>Assigned outlets</th><th>Audit forms</th><th>Tracker records</th><th>Status</th><th class="right">Actions</th></tr></thead>
+          <tbody>
+            ${tsms.map(t => {
+              const assigned = masterData.filter(m => m.type === 'Outlet' && m.tsmName === t.name);
+              const tAudits = auditForms.filter(a => a.tsmName === t.name);
+              const tTracker = monthlyTracker.filter(r => r.tsmName === t.name);
+              return `
+              <tr>
+                <td><div class="cell-with-avatar"><div class="row-avatar">${initials(t.name)}</div><div><div class="cell-primary">${esc(t.name)}</div><div class="cell-sub">${esc(t.email)}</div></div></div></td>
+                <td>${esc(t.territory)}</td>
+                <td>${assigned.length}</td>
+                <td>${tAudits.length}</td>
+                <td>${tTracker.length}</td>
+                <td><span class="badge ${statusBadgeClass(t.status)}"><span class="badge-dot"></span>${t.status}</span></td>
+                <td class="right"><div class="row-actions">
+                  <button class="icon-btn-sm" title="View" data-action="view-tsm" data-id="${t.id}">${icons.eye}</button>
+                  <button class="icon-btn-sm" title="Edit" data-action="edit-user" data-id="${t.id}">${icons.edit}</button>
+                </div></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ==================== page: accounts & outstanding ==================== */
+function renderAccountsPage() {
+  const outlets = masterData.filter(m => m.type === 'Outlet' && m.accountNumber);
+  const totalOutstanding = outlets.reduce((sum, o) => sum + o.accountBalance, 0);
+  const withBalance = outlets.filter(o => o.accountBalance > 0).length;
+  return `
+    <div class="page-header"><div><h1>Accounts &amp; Outstanding</h1><div class="sub">Retail outlet account balances synced from the mobile app's Account Information screen.</div></div></div>
+    <div class="kpi-grid cols-3" style="margin-bottom:22px;">
+      ${kpiCard('idCard', 'Total Outlet Accounts', outlets.length, 'up', 'tracked accounts')}
+      <div class="kpi-card">
+        <div class="kpi-top"><div class="kpi-icon" style="background:var(--danger-light);color:var(--danger);">${icons.alertCircle}</div></div>
+        <div class="kpi-value">₹${totalOutstanding.toLocaleString('en-IN')}</div>
+        <div class="kpi-label">Total Outstanding Amount</div>
+      </div>
+      ${kpiCard('alertTriangle', 'Accounts with a Balance', withBalance, withBalance ? 'down' : 'up', withBalance ? 'needs follow-up' : 'all clear')}
+    </div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Outlet</th><th>Dealer</th><th>TSM</th><th>Account number</th><th class="right">Outstanding balance</th><th class="right">Actions</th></tr></thead>
+          <tbody>
+            ${[...outlets].sort((a, b) => b.accountBalance - a.accountBalance).map(o => `
+              <tr>
+                <td class="cell-primary">${esc(o.title)}</td>
+                <td>${esc(o.dealer)}</td>
+                <td>${esc(o.tsmName)}</td>
+                <td>${esc(o.accountNumber)}</td>
+                <td class="right" style="font-weight:700;color:${o.accountBalance ? 'var(--danger)' : 'var(--success)'};">₹${o.accountBalance.toLocaleString('en-IN')}</td>
+                <td class="right"><div class="row-actions"><button class="icon-btn-sm" title="View" data-action="view-account" data-id="${o.id}">${icons.eye}</button></div></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ==================== page: activity / audit log ==================== */
+const ACTIVITY_MODULES = ['Users', 'Content / Data', 'Operations', 'Reports', 'Notifications', 'Administration'];
+function renderActivityPage() {
+  const f = state.activity;
+  const rows = activityLog.filter(a => (f.module === 'all' || a.module === f.module) && (!f.search || `${a.user} ${a.entity} ${a.action}`.toLowerCase().includes(f.search.toLowerCase())));
+  return `
+    <div class="page-header"><div><h1>Activity / Audit Log</h1><div class="sub">A record of administrative actions taken in this Admin Panel session.</div></div></div>
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-bar" style="max-width:280px;">${icons.search}<input type="text" id="activitySearchInput" placeholder="Search user, entity, action" value="${esc(f.search)}" /></div>
+        <div class="tt-filters">
+          <select class="input" id="activityModuleFilter">
+            <option value="all">All modules</option>
+            ${ACTIVITY_MODULES.map(m => `<option value="${m}" ${f.module === m ? 'selected' : ''}>${m}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div id="activityTableWrap">${renderActivityTableBody(rows)}</div>
+    </div>`;
+}
+function renderActivityTableBody(rows) {
+  if (!rows.length) return emptyState('fileText', 'No activity found', 'No administrative actions match this filter.');
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Time</th><th>User</th><th>Module</th><th>Action</th><th>Entity</th></tr></thead>
+        <tbody>
+          ${rows.map(a => `
+            <tr>
+              <td>${fmtDateTime(a.time)}</td>
+              <td class="cell-primary">${esc(a.user)}</td>
+              <td>${esc(a.module)}</td>
+              <td><span class="badge badge-info">${esc(a.action)}</span></td>
+              <td>${esc(a.entity)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+/* ==================== page: operations (Indent & Inventory / Audit Forms / Monthly Tracker,
+   the field-ops screens from the mobile app, gathered under one admin oversight page) ==================== */
+const OPS_TABS = [
+  { key: 'tasks', label: 'Pending Tasks', icon: 'fileText' },
+  { key: 'indents', label: 'Indents & Inventory', icon: 'boxes' },
+  { key: 'audits', label: 'Audit Forms (CRA)', icon: 'shield' },
+  { key: 'tracker', label: 'Monthly Tracker', icon: 'checkCircle' },
+];
+function renderOperationsPage() {
+  const s = state.operations;
+  return `
+    <div class="page-header">
+      <div><h1>Operations</h1><div class="sub">Field-generated data from the mobile app: pending work, indents, retail outlet audits and the monthly compliance tracker.</div></div>
+    </div>
+    <div class="tabs">${OPS_TABS.map(t => `<button class="tab-btn ${s.tab === t.key ? 'active' : ''}" data-optab="${t.key}">${t.label}</button>`).join('')}</div>
+    <div class="table-card" id="opsTableWrap">${s.loading ? tableSkeleton(6) : renderOpsTabBody()}</div>`;
+}
+function renderOpsTabBody() {
+  if (state.operations.tab === 'audits') return renderAuditsTabBody();
+  if (state.operations.tab === 'tracker') return renderTrackerTabBody();
+  if (state.operations.tab === 'tasks') return renderTasksTabBody();
+  return renderIndentsTabBody();
+}
+function buildPendingTasks() {
+  const tasks = [];
+  monthlyTracker.filter(r => r.percentage < 100).forEach(r => tasks.push({ type: 'Monthly Tracker', outlet: r.outletName, assignee: r.tsmName, due: r.month, priority: r.percentage === 0 ? 'High' : 'Medium', status: trackerStatusLabel(r) }));
+  auditForms.filter(a => a.status === 'Overdue').forEach(a => tasks.push({ type: 'Audit Form (CRA)', outlet: a.outletName, assignee: a.tsmName, due: 'Visit overdue', priority: 'High', status: a.status }));
+  indents.filter(i => i.status !== 'C').forEach(i => {
+    const outlet = masterData.find(m => m.type === 'Outlet' && m.title === i.outletName);
+    tasks.push({ type: 'Indent', outlet: i.outletName, assignee: outlet ? outlet.tsmName : i.dealerName, due: fmtDate(i.requiredDate), priority: i.status === 'P' ? 'Medium' : 'Low', status: INDENT_STATUS_LABEL[i.status] });
+  });
+  const order = { High: 0, Medium: 1, Low: 2 };
+  return tasks.sort((a, b) => order[a.priority] - order[b.priority]);
+}
+function priorityBadgeClass(p) { return { High: 'badge-danger', Medium: 'badge-warning', Low: 'badge-muted' }[p]; }
+function renderTasksTabBody() {
+  const tasks = buildPendingTasks();
+  if (!tasks.length) return emptyState('checkCircle', "You're all caught up", 'No pending tracker, audit or indent items right now.');
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Task type</th><th>Outlet</th><th>Assigned to</th><th>Due</th><th>Priority</th><th>Status</th></tr></thead>
+        <tbody>
+          ${tasks.map(t => `
+            <tr>
+              <td class="cell-primary">${esc(t.type)}</td>
+              <td>${esc(t.outlet)}</td>
+              <td>${esc(t.assignee)}</td>
+              <td>${esc(t.due)}</td>
+              <td><span class="badge ${priorityBadgeClass(t.priority)}"><span class="badge-dot"></span>${t.priority}</span></td>
+              <td><span class="badge ${statusBadgeClass(t.status)}">${esc(t.status)}</span></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+function renderIndentsTabBody() {
+  if (!indents.length) return emptyState('boxes', 'No indents raised', 'No indents have been raised for this period.');
+  const { rows: pageRows, page, totalPages, total } = paginate(indents, state.operations.page, state.operations.pageSize);
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Indent ID</th><th>Outlet</th><th>Product</th><th>Quantity</th><th>Required date</th><th>Status</th><th class="right">Actions</th></tr></thead>
+        <tbody>
+          ${pageRows.map(i => `
+            <tr>
+              <td class="cell-primary">${esc(i.id)}</td>
+              <td>${esc(i.outletName)}<div class="cell-sub">${esc(i.dealerName)}</div></td>
+              <td>${esc(i.product)}</td>
+              <td>${i.quantity.toLocaleString('en-IN')} ${esc(i.unit)}</td>
+              <td>${fmtDate(i.requiredDate)}</td>
+              <td><span class="badge ${statusBadgeClass(INDENT_STATUS_LABEL[i.status])}"><span class="badge-dot"></span>${INDENT_STATUS_LABEL[i.status]}</span></td>
+              <td class="right">
+                <div class="row-actions">
+                  <button class="icon-btn-sm" title="View" data-action="view-indent" data-id="${i.id}">${icons.eye}</button>
+                  <button class="icon-btn-sm" title="Advance status" data-action="advance-indent" data-id="${i.id}" ${i.status === 'C' ? 'disabled style="opacity:.35;"' : ''}>${icons.refresh}</button>
+                  <button class="icon-btn-sm danger" title="Cancel indent" data-action="cancel-indent" data-id="${i.id}" ${i.status === 'C' ? 'disabled style="opacity:.35;"' : ''}>${icons.xCircle}</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${paginationHtml('operations', page, totalPages, total, pageRows.length)}`;
+}
+function renderAuditsTabBody() {
+  if (!auditForms.length) return emptyState('shield', 'No audit forms found', 'No RO Audit Forms have been submitted yet.');
+  const { rows: pageRows, page, totalPages, total } = paginate(auditForms, state.operations.page, state.operations.pageSize);
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Outlet</th><th>Ref no.</th><th>TSM</th><th>Visit date</th><th>Photos / Attendees</th><th>Status</th><th class="right">Actions</th></tr></thead>
+        <tbody>
+          ${pageRows.map(a => `
+            <tr>
+              <td class="cell-primary">${esc(a.outletName)}</td>
+              <td>${esc(a.refNo)}</td>
+              <td>${esc(a.tsmName)}</td>
+              <td>${fmtDate(a.visitDate)}</td>
+              <td>${a.photosCaptured}/2 &middot; ${a.attendeeCount} attendee${a.attendeeCount === 1 ? '' : 's'}</td>
+              <td><span class="badge ${statusBadgeClass(a.status)}"><span class="badge-dot"></span>${esc(a.status)}</span></td>
+              <td class="right">
+                <div class="row-actions">
+                  <button class="icon-btn-sm" title="View" data-action="view-audit" data-id="${a.id}">${icons.eye}</button>
+                  <button class="icon-btn-sm danger" title="Delete" data-action="delete-audit" data-id="${a.id}">${icons.trash}</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${paginationHtml('operations', page, totalPages, total, pageRows.length)}`;
+}
+function trackerStatusLabel(r) { return r.completed ? 'Completed' : r.percentage === 0 ? 'Not Started' : 'In Progress'; }
+function filteredTracker() {
+  const f = state.operations.trackerFilter;
+  return f === 'all' ? monthlyTracker : monthlyTracker.filter(r => trackerStatusLabel(r) === f);
+}
+function renderTrackerTabBody() {
+  const rows = filteredTracker();
+  const filterChips = `<div class="chip-row" style="padding:14px 18px 0;">
+    ${['all', 'Not Started', 'In Progress', 'Completed'].map(f => `<button class="chip ${state.operations.trackerFilter === f ? 'active' : ''}" data-tracker-filter="${f}">${f === 'all' ? 'All outlets' : f}</button>`).join('')}
+  </div>`;
+  if (!rows.length) return filterChips + emptyState('checkCircle', 'No matching records', 'No outlets match this filter for August 2026.');
+  const { rows: pageRows, page, totalPages, total } = paginate(rows, state.operations.page, state.operations.pageSize);
+  return filterChips + `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Outlet</th><th>TSM</th><th>Month</th><th>Progress</th><th>Status</th><th class="right">Actions</th></tr></thead>
+        <tbody>
+          ${pageRows.map(r => `
+            <tr>
+              <td class="cell-primary">${esc(r.outletName)}</td>
+              <td>${esc(r.tsmName)}</td>
+              <td>${esc(r.month)}</td>
+              <td><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar ${r.percentage === 100 ? 'success' : r.percentage === 0 ? 'danger' : ''}"><span style="width:${r.percentage}%"></span></div><span style="font-size:11.5px;color:var(--text-secondary);">${r.percentage}%</span></div></td>
+              <td><span class="badge ${statusBadgeClass(trackerStatusLabel(r))}"><span class="badge-dot"></span>${trackerStatusLabel(r)}</span></td>
+              <td class="right"><div class="row-actions"><button class="icon-btn-sm" title="View" data-action="view-tracker" data-id="${esc(r.outletName)}">${icons.eye}</button></div></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${paginationHtml('operations', page, totalPages, total, pageRows.length)}`;
+}
+
+/* ==================== page: reports / analytics ==================== */
+function filteredReports() {
+  const s = state.reports;
+  return s.type === 'all' ? reports : reports.filter(r => r.type === s.type);
+}
+function renderReportsPage() {
+  const s = state.reports;
+  return `
+    <div class="page-header">
+      <div><h1>Reports &amp; Analytics</h1><div class="sub">Generate and download operational reports across sales, inventory, audits and indents.</div></div>
+      <div class="ph-actions">
+        <select class="input" id="reportTypeFilter" style="width:auto;">
+          <option value="all">All types</option>
+          ${['Sales', 'Inventory', 'Audit', 'Indent'].map(t => `<option value="${t}" ${s.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+        </select>
+        <button class="btn btn-primary" data-action="generate-report" ${s.generating ? 'disabled' : ''}>${s.generating ? '<span class="spinner sm"></span>' : icons.plus}${s.generating ? 'Generating...' : 'Generate Report'}</button>
+      </div>
+    </div>
+    <div class="table-card">
+      <div id="reportsTableWrap">${s.loading ? tableSkeleton(5) : renderReportsTableBody()}</div>
+    </div>`;
+}
+function renderReportsTableBody() {
+  const s = state.reports;
+  if (s.genError) return errorState(() => { s.genError = false; renderApp(); }, 'Report generation failed', "We couldn't generate this report. Check the date range and try again.");
+  const rows = filteredReports();
+  if (!rows.length) return emptyState('chart', 'No reports yet', 'Generate your first report to see it listed here.');
+  const { rows: pageRows, page, totalPages, total } = paginate(rows, s.page, s.pageSize);
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Report</th><th>Type</th><th>Date range</th><th>Generated by</th><th>Generated at</th><th>Status</th><th class="right">Actions</th></tr></thead>
+        <tbody>
+          ${pageRows.map(r => `
+            <tr>
+              <td class="cell-primary">${esc(r.name)}</td>
+              <td>${esc(r.type)}</td>
+              <td>${esc(r.dateRange)}</td>
+              <td>${esc(r.generatedBy)}</td>
+              <td>${fmtDateTime(r.generatedAt)}</td>
+              <td><span class="badge ${statusBadgeClass(r.status)}"><span class="badge-dot"></span>${r.status}</span></td>
+              <td class="right">
+                <div class="row-actions">
+                  <button class="icon-btn-sm" title="View" data-action="view-report" data-id="${r.id}">${icons.eye}</button>
+                  <button class="icon-btn-sm" title="Download" data-action="download-report" data-id="${r.id}" ${r.status !== 'Ready' ? 'disabled style="opacity:.35;"' : ''}>${icons.download}</button>
+                  <button class="icon-btn-sm danger" title="Delete" data-action="delete-report" data-id="${r.id}">${icons.trash}</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${paginationHtml('reports', page, totalPages, total, pageRows.length)}`;
+}
+
+/* ==================== page: notifications ==================== */
+function renderNotificationsPage() {
+  const s = state.notifications;
+  const rows = s.filter === 'unread' ? notifications.filter(n => n.unread) : notifications;
+  return `
+    <div class="page-header">
+      <div><h1>Notifications</h1><div class="sub">System alerts and messages sent to app users.</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" data-action="compose-notif">${icons.send}Compose Notification</button></div>
+    </div>
+    <div class="grid-2">
+      <div class="card" style="padding:0;">
+        <div class="table-toolbar" style="border-bottom:1px solid var(--divider);">
+          <div class="chip-row">
+            <button class="chip ${s.filter === 'all' ? 'active' : ''}" data-notif-filter="all">All (${notifications.length})</button>
+            <button class="chip ${s.filter === 'unread' ? 'active' : ''}" data-notif-filter="unread">Unread (${notifications.filter(n => n.unread).length})</button>
+          </div>
+          <button class="btn btn-ghost" style="margin-left:auto;" data-action="mark-all-read">Mark all as read</button>
+        </div>
+        <div style="padding:8px;">${s.loading ? notifSkeleton() : renderNotifList(rows)}</div>
+      </div>
+      <div class="card">
+        <div class="section-title">Send a quick notification</div>
+        ${notifQuickFormHtml()}
+      </div>
+    </div>`;
+}
+function renderNotifList(rows) {
+  if (!rows.length) return emptyState('bell', 'No notifications', 'You are all caught up here.');
+  const colors = { info: ['var(--info-light)', 'var(--info)', 'info'], success: ['var(--success-light)', 'var(--success)', 'checkCircle'], warning: ['var(--warning-light)', 'var(--warning)', 'alertTriangle'], danger: ['var(--danger-light)', 'var(--danger)', 'alertTriangle'] };
+  return rows.map(n => {
+    const [bg, fg, ic] = colors[n.type] || colors.info;
+    return `<div style="display:flex;gap:12px;padding:14px 12px;border-radius:var(--radius-md);${n.unread ? 'background:var(--primary-tint);' : ''}position:relative;">
+      <div style="width:38px;height:38px;border-radius:50%;background:${bg};color:${fg};display:flex;align-items:center;justify-content:center;flex:0 0 auto;">${icons[ic]}</div>
+      <div style="min-width:0;flex:1 1 auto;">
+        <div style="font-size:13.5px;font-weight:700;">${esc(n.title)}</div>
+        <div style="font-size:12.5px;color:var(--text-secondary);margin-top:2px;">${esc(n.desc)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">${esc(n.audience)} &middot; ${fmtDateTime(n.time)}</div>
+      </div>
+      <div class="row-actions" style="align-items:flex-start;">
+        ${n.unread ? `<button class="icon-btn-sm" title="Mark as read" data-action="notif-read" data-id="${n.id}">${icons.check}</button>` : ''}
+        <button class="icon-btn-sm danger" title="Delete" data-action="notif-delete" data-id="${n.id}">${icons.trash}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function notifQuickFormHtml() {
+  return `
+    <form id="quickNotifForm">
+      <div class="field"><label>Title</label><input class="input" name="title" placeholder="e.g. System maintenance" required /></div>
+      <div class="field"><label>Message</label><textarea class="input" name="desc" placeholder="Write the notification message" required></textarea></div>
+      <div class="field"><label>Audience</label>
+        <select class="input" name="audience">
+          <option>All Users</option><option>All Admins</option><option>TSM - Ahmedabad</option><option>TSM - Gandhinagar</option><option>HOS</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">${icons.send}Send Notification</button>
+    </form>`;
+}
+
+/* ==================== page: settings ==================== */
+const SETTINGS_TABS = [
+  { key: 'general', label: 'General' },
+  { key: 'security', label: 'Security' },
+  { key: 'notifications', label: 'Notification Preferences' },
+  { key: 'sync', label: 'Master Sync' },
+];
+function renderSettingsPage() {
+  return `
+    <div class="page-header"><div><h1>Settings</h1><div class="sub">Configure organization, security and notification preferences.</div></div></div>
+    <div class="tabs">${SETTINGS_TABS.map(t => `<button class="tab-btn ${state.settingsTab === t.key ? 'active' : ''}" data-settings-tab="${t.key}">${t.label}</button>`).join('')}</div>
+    <div class="card" style="max-width:720px;">${renderSettingsTabBody()}</div>`;
+}
+function renderSettingsTabBody() {
+  if (state.settingsTab === 'general') {
+    return `
+      <form id="settingsGeneralForm">
+        <div class="form-grid">
+          <div class="field"><label>Organization name</label><input class="input" name="org" value="Mount Meru Group" /></div>
+          <div class="field"><label>Support email</label><input class="input" type="email" name="email" value="support@mountmerugroup.com" /></div>
+          <div class="field"><label>Timezone</label><select class="input" name="tz"><option>Asia/Kolkata (IST)</option><option>UTC</option></select></div>
+          <div class="field"><label>Default language</label><select class="input" name="lang"><option>English</option><option>Hindi</option><option>Gujarati</option></select></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </form>
+      <div class="switch-row" style="margin-top:6px;"><div><div class="sr-title">Dark theme</div><div class="sr-desc">Switch the Admin Panel between light and dark mode.</div></div><button class="switch ${state.theme === 'dark' ? 'on' : ''}" id="themeSwitchBtn"></button></div>`;
+  }
+  if (state.settingsTab === 'security') {
+    return `
+      <div class="switch-row"><div><div class="sr-title">Two-factor authentication</div><div class="sr-desc">Require an OTP for all admin sign-ins.</div></div><button class="switch on" data-toggle-switch></button></div>
+      <div class="switch-row"><div><div class="sr-title">Enforce strong passwords</div><div class="sr-desc">Minimum 8 characters with a number and symbol.</div></div><button class="switch on" data-toggle-switch></button></div>
+      <div class="switch-row"><div><div class="sr-title">Auto sign-out after 30 minutes idle</div><div class="sr-desc">Applies to all admin sessions.</div></div><button class="switch" data-toggle-switch></button></div>
+      <div style="margin-top:16px;"><button class="btn btn-outline">${icons.lock}Change password</button></div>`;
+  }
+  if (state.settingsTab === 'notifications') {
+    return `
+      <div class="switch-row"><div><div class="sr-title">Email notifications</div><div class="sr-desc">Receive a daily digest of key alerts by email.</div></div><button class="switch on" data-toggle-switch></button></div>
+      <div class="switch-row"><div><div class="sr-title">SMS alerts</div><div class="sr-desc">Critical alerts (overdue audits, low stock) via SMS.</div></div><button class="switch on" data-toggle-switch></button></div>
+      <div class="switch-row"><div><div class="sr-title">In-app push notifications</div><div class="sr-desc">Show a badge on the bell icon for new alerts.</div></div><button class="switch on" data-toggle-switch></button></div>`;
+  }
+  return renderMasterSyncBody();
+}
+function renderMasterSyncBody() {
+  const s = state.sync;
+  return `
+    <div class="stat-row" style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--divider);"><span style="color:var(--text-secondary);font-size:13px;">Last sync</span><strong style="font-size:13px;">${fmtDateTime(s.lastSync)}</strong></div>
+    ${s.running ? `
+      <div style="margin-top:14px;">
+        <div class="stat-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--divider);"><span style="font-size:13px;">Sync Master Data</span>${s.step1Done ? `<span style="color:var(--success);">${icons.checkCircle}</span>` : `<span class="spinner sm"></span>`}</div>
+        <div class="stat-row" style="display:flex;justify-content:space-between;padding:10px 0;"><span style="font-size:13px;${s.step1Done ? '' : 'opacity:.4;'}">Sync Monthly Tracker Data</span>${s.step2Done ? `<span style="color:var(--success);">${icons.checkCircle}</span>` : s.step1Done ? `<span class="spinner sm"></span>` : `<span style="opacity:.3;">${icons.checkCircle}</span>`}</div>
+      </div>` : ''}
+    <button class="btn btn-primary" id="startSyncBtn" style="margin-top:16px;" ${s.running ? 'disabled' : ''}>${icons.refresh}${s.running ? 'Syncing...' : 'Start Sync'}</button>`;
+}
+function runMasterSync() {
+  const s = state.sync;
+  s.running = true; s.step1Done = false; s.step2Done = false; renderApp();
+  setTimeout(() => {
+    s.step1Done = true; renderApp();
+    setTimeout(() => {
+      s.step2Done = true; s.running = false; s.lastSync = new Date().toISOString();
+      logActivity('Administration', 'Master sync', 'Master data + Monthly Tracker data');
+      renderApp(); showToast('success', 'Sync completed successfully.');
+    }, 900);
+  }, 900);
+}
+
+/* ==================== shared UI fragments ==================== */
+function tableSkeleton(rowCount) {
+  return `<div style="padding:16px 18px;">
+    ${Array.from({ length: rowCount }).map(() => `<div class="skeleton sk-line" style="width:${60 + Math.random() * 35}%;margin-bottom:14px;"></div>`).join('')}
+  </div>`;
+}
+function notifSkeleton() {
+  return Array.from({ length: 3 }).map(() => `<div style="display:flex;gap:12px;padding:14px 12px;"><div class="skeleton" style="width:38px;height:38px;border-radius:50%;flex:0 0 auto;"></div><div style="flex:1 1 auto;"><div class="skeleton sk-line" style="width:60%;margin-bottom:8px;"></div><div class="skeleton sk-line" style="width:85%;"></div></div></div>`).join('');
+}
+function emptyState(iconName, title, desc) {
+  return `<div class="state-block"><div class="state-icon">${icons[iconName]}</div><h4>${esc(title)}</h4><p>${esc(desc)}</p></div>`;
+}
+function errorState(onRetry, title = 'Something went wrong', desc = 'We could not load this data. Please try again.') {
+  window.__retryHandler = onRetry;
+  return `<div class="state-block error"><div class="state-icon">${icons.alertTriangle}</div><h4>${esc(title)}</h4><p>${esc(desc)}</p><button class="btn btn-primary" onclick="window.__retryHandler()">${icons.refresh}Retry</button></div>`;
+}
+function paginationHtml(scope, page, totalPages, total, shown) {
+  const start = total === 0 ? 0 : (page - 1) * state[scope].pageSize + 1;
+  const end = start + shown - 1;
+  let btns = '';
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || Math.abs(i - page) <= 1) {
+      btns += `<button class="page-btn ${i === page ? 'active' : ''}" data-page-scope="${scope}" data-page="${i}">${i}</button>`;
+    } else if (btns.slice(-3) !== '...') {
+      btns += `<span style="padding:0 4px;color:var(--muted);">...</span>`;
+    }
+  }
+  return `<div class="pagination">
+    <div class="page-info">Showing ${start}-${end} of ${total}</div>
+    <div class="page-btns">
+      <button class="page-btn" data-page-scope="${scope}" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>${icons.chevLeft}</button>
+      ${btns}
+      <button class="page-btn" data-page-scope="${scope}" data-page="${page + 1}" ${page >= totalPages ? 'disabled' : ''}>${icons.chevRight}</button>
+    </div>
+  </div>`;
+}
+
+/* ==================== auth: sign in (Employee ID + OTP, mirrors the mobile app) ==================== */
+function renderAuth() {
+  document.getElementById('authWrap').innerHTML = `<div class="auth-card">${state.auth.step === 'otp' ? renderOtpStep() : renderIdStep()}</div>`;
+}
+function renderIdStep() {
+  const a = state.auth;
+  return `
+    <div class="login-screen">
+      <div class="login-logo">${icons.meruLogo}</div>
+      <h1>Mount Meru Admin</h1>
+      <p class="sub">Enter your Employee ID to continue</p>
+      <div id="loginError">${a.error ? `<div class="login-error-banner">${icons.alertCircle}<span>${esc(a.error)}</span></div>` : ''}</div>
+      <form id="loginIdForm" novalidate>
+        <div class="field">
+          <label for="f-id">Employee ID</label>
+          <input class="input" id="f-id" name="empId" type="text" inputmode="numeric" maxlength="8" placeholder="e.g. 10088888" autocomplete="username" value="${esc(a.empId)}" />
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" id="loginSubmitBtn" ${a.loading ? 'disabled' : ''}>${a.loading ? `<span class="spinner sm" style="border-color:rgba(255,255,255,0.4);border-top-color:#fff;"></span> Sending OTP...` : 'Send OTP'}</button>
+      </form>
+      <div class="demo-hint">
+        <strong>Demo accounts</strong><br/>
+        Admin: 10088888<br/>
+        TSM: 10012345 &middot; Divisional Manager (HOS): 10099999
+      </div>
+      <div class="login-footer">Mount Meru Admin &middot; Version 1.0.0</div>
+    </div>`;
+}
+function renderOtpStep() {
+  const a = state.auth;
+  return `
+    <div class="login-screen">
+      <button class="icon-btn otp-back-btn" id="otpBackBtn">${icons.chevLeft}</button>
+      <div class="login-logo">${icons.lock}</div>
+      <h1>Verify OTP</h1>
+      <p class="sub">Enter the 6-digit code sent to your registered mobile for Employee ID ${esc(a.empId)}</p>
+      <div id="otpError">${a.error ? `<div class="login-error-banner">${icons.alertCircle}<span>${esc(a.error)}</span></div>` : ''}</div>
+      <form id="loginOtpForm" novalidate>
+        <div class="field">
+          <label for="f-otp">One-Time Password</label>
+          <input class="input" id="f-otp" name="otp" type="text" inputmode="numeric" maxlength="6" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" style="letter-spacing:8px;font-size:19px;text-align:center;font-weight:700;" />
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" id="otpSubmitBtn" ${a.loading ? 'disabled' : ''}>${a.loading ? `<span class="spinner sm" style="border-color:rgba(255,255,255,0.4);border-top-color:#fff;"></span> Verifying...` : 'Verify &amp; Sign In'}</button>
+      </form>
+      <div class="demo-hint" style="margin-top:20px;">Any 6-digit code will work in this demo build.</div>
+      <div class="login-footer">Mount Meru Admin &middot; Version 1.0.0</div>
+    </div>`;
+}
+function showAuthScreen() {
+  document.getElementById('adminShell').style.display = 'none';
+  document.getElementById('authWrap').style.display = 'flex';
+  renderAuth();
+}
+function showAppScreen() {
+  document.getElementById('authWrap').style.display = 'none';
+  document.getElementById('adminShell').style.display = 'flex';
+}
+function performLogout() {
+  openConfirm({
+    title: 'Log out?', message: 'You will need to sign in again with your Employee ID and OTP.',
+    confirmLabel: 'Log Out', danger: true, iconName: 'logout',
+    onConfirm: () => {
+      state.authenticated = false;
+      state.auth = { step: 'id', empId: '', otp: '', loading: false, error: '', matchedUser: null };
+      state.route = 'dashboard';
+      showAuthScreen();
+      showToast('info', 'Logged out successfully.');
+    },
+  });
+}
+
+/* ==================== router / render ==================== */
+const PAGE_RENDERERS = { dashboard: renderDashboard, users: renderUsersPage, tsm: renderTsmPage, content: renderContentPage, operations: renderOperationsPage, accounts: renderAccountsPage, reports: renderReportsPage, activity: renderActivityPage, notifications: renderNotificationsPage, settings: renderSettingsPage };
+function renderApp() {
+  renderSidebar();
+  renderTopbar();
+  document.getElementById('content').innerHTML = PAGE_RENDERERS[state.route]();
+}
+function navigate(route) {
+  if (!PAGE_RENDERERS[route]) route = 'dashboard';
+  state.route = route;
+  closeAllDropdowns();
+  closeDrawer();
+  loadRouteData(route);
+  renderApp();
+  window.scrollTo(0, 0);
+  if (location.hash.slice(1) !== route) location.hash = route;
+}
+function loadRouteData(route) {
+  const map = { users: state.users, content: state.content, operations: state.operations, reports: state.reports, notifications: state.notifications };
+  const s = map[route];
+  if (!s || s.loaded) return;
+  s.loading = true;
+  setTimeout(() => {
+    s.loading = false;
+    s.loaded = true;
+    if (state.route === route) renderApp();
+  }, 500);
+}
+
+/* ==================== dropdowns / drawer ==================== */
+function closeAllDropdowns() { document.querySelectorAll('.dropdown-menu.open').forEach(d => d.classList.remove('open')); }
+function openDrawer() { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerBackdrop').classList.add('open'); }
+function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerBackdrop').classList.remove('open'); }
+
+/* ==================== add/edit form builders ==================== */
+function userFormBody(u) {
+  return `
+    <div class="form-grid">
+      <div class="field"><label>Full name</label><input class="input" name="name" value="${u ? esc(u.name) : ''}" required /></div>
+      <div class="field"><label>Email</label><input class="input" type="email" name="email" value="${u ? esc(u.email) : ''}" required /></div>
+      <div class="field"><label>Phone</label><input class="input" name="phone" value="${u ? esc(u.phone) : ''}" required /></div>
+      <div class="field"><label>Role</label>
+        <select class="input" name="role">${['TSM', 'HOS', 'RO', 'Admin'].map(r => `<option ${u && u.role === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
+      </div>
+      <div class="field full"><label>Territory</label>
+        <select class="input" name="territory">${['All Territories', ...TERRITORIES].map(t => `<option ${u && u.territory === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      </div>
+    </div>`;
+}
+function contentFormBody(m) {
+  return `
+    <div class="form-grid">
+      <div class="field full"><label>Title</label><input class="input" name="title" value="${m ? esc(m.title) : ''}" required /></div>
+      <div class="field"><label>Type</label>
+        <select class="input" name="type">${['Outlet', 'Product', 'Price List', 'Scheme'].map(t => `<option ${m && m.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Code</label><input class="input" name="code" value="${m ? esc(m.code) : ''}" required /></div>
+      <div class="field full"><label>Owner</label><input class="input" name="owner" value="${m ? esc(m.owner) : CURRENT_ADMIN.name}" required /></div>
+      <div class="field full"><label>Status</label>
+        <select class="input" name="status">${['Draft', 'Published', 'Archived'].map(t => `<option ${m && m.status === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      </div>
+    </div>`;
+}
+/* ==================== event delegation ==================== */
+document.addEventListener('click', (e) => {
+  const routeEl = e.target.closest('[data-route]');
+  if (routeEl) { e.preventDefault(); navigate(routeEl.dataset.route); return; }
+
+  if (e.target.closest('#collapseBtn')) { state.sidebarCollapsed = !state.sidebarCollapsed; renderSidebar(); return; }
+  if (e.target.closest('#themeToggleBtn')) { toggleTheme(); return; }
+  if (e.target.closest('#themeSwitchBtn')) { toggleTheme(); renderApp(); return; }
+  if (e.target.closest('#drawerOpenBtn')) { openDrawer(); return; }
+  if (e.target.closest('#drawerCloseBtn') || e.target === document.getElementById('drawerBackdrop')) { closeDrawer(); return; }
+
+  if (e.target.closest('#notifBtn')) { const dd = document.getElementById('notifDropdown'); const wasOpen = dd.classList.contains('open'); closeAllDropdowns(); if (!wasOpen) dd.classList.add('open'); return; }
+  if (e.target.closest('#profileBtn')) { const dd = document.getElementById('profileDropdown'); const wasOpen = dd.classList.contains('open'); closeAllDropdowns(); if (!wasOpen) dd.classList.add('open'); return; }
+  if (!e.target.closest('.dropdown-wrap')) closeAllDropdowns();
+
+  if (e.target.closest('#logoutBtn')) { closeAllDropdowns(); performLogout(); return; }
+  if (e.target.closest('#otpBackBtn')) { state.auth.step = 'id'; state.auth.error = ''; renderAuth(); return; }
+  if (e.target.closest('#markAllReadBtn')) { notifications.forEach(n => n.unread = false); renderApp(); showToast('success', 'All notifications marked as read.'); return; }
+
+  if (e.target.closest('[data-close-modal]') || e.target === document.getElementById('overlayBackdrop')) { closeModal(); closeDetailPanel(); return; }
+
+  const pageBtn = e.target.closest('[data-page-scope]');
+  if (pageBtn && !pageBtn.disabled) {
+    const scope = pageBtn.dataset.pageScope; const p = parseInt(pageBtn.dataset.page, 10);
+    state[scope].page = p; renderApp(); return;
+  }
+
+  const notifFilterBtn = e.target.closest('[data-notif-filter]');
+  if (notifFilterBtn) { state.notifications.filter = notifFilterBtn.dataset.notifFilter; renderApp(); return; }
+
+  const settingsTabBtn = e.target.closest('[data-settings-tab]');
+  if (settingsTabBtn) { state.settingsTab = settingsTabBtn.dataset.settingsTab; renderApp(); return; }
+
+  const usersTabBtn = e.target.closest('[data-users-tab]');
+  if (usersTabBtn) { state.usersTab = usersTabBtn.dataset.usersTab; renderApp(); return; }
+
+  const roleTabBtn = e.target.closest('[data-role-tab]');
+  if (roleTabBtn) { state.rolesTab = roleTabBtn.dataset.roleTab; renderApp(); return; }
+
+  const opsTabBtn = e.target.closest('[data-optab]');
+  if (opsTabBtn) { state.operations.tab = opsTabBtn.dataset.optab; state.operations.page = 1; renderApp(); return; }
+
+  const trackerFilterBtn = e.target.closest('[data-tracker-filter]');
+  if (trackerFilterBtn) { state.operations.trackerFilter = trackerFilterBtn.dataset.trackerFilter; state.operations.page = 1; renderApp(); return; }
+
+  if (e.target.closest('#startSyncBtn')) { runMasterSync(); return; }
+
+  const switchBtn = e.target.closest('[data-toggle-switch]');
+  if (switchBtn) { switchBtn.classList.toggle('on'); return; }
+
+  const actionEl = e.target.closest('[data-action]');
+  if (actionEl) {
+    if (actionEl.hasAttribute('data-close-search')) {
+      document.getElementById('globalSearchResults').classList.remove('open');
+      document.getElementById('globalSearchInput').value = '';
+      const routeByAction = { 'view-user': 'users', 'view-content': 'content', 'view-indent': 'operations', 'view-audit': 'operations' };
+      const tabByAction = { 'view-indent': 'indents', 'view-audit': 'audits' };
+      const route = routeByAction[actionEl.dataset.action];
+      if (route) {
+        if (tabByAction[actionEl.dataset.action]) state.operations.tab = tabByAction[actionEl.dataset.action];
+        navigate(route);
+      }
+    }
+    handleAction(actionEl.dataset.action, actionEl.dataset.id, actionEl);
+    return;
+  }
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'f-id') { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8); }
+  if (e.target.id === 'f-otp') { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); }
+  if (e.target.id === 'userSearchInput') { state.users.search = e.target.value; state.users.page = 1; document.getElementById('usersTableWrap').innerHTML = renderUsersTableBody(); }
+  if (e.target.id === 'contentSearchInput') { state.content.search = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableBody(); }
+  if (e.target.id === 'activitySearchInput') { state.activity.search = e.target.value; document.getElementById('activityTableWrap').innerHTML = renderActivityTableBody(activityLog.filter(a => (state.activity.module === 'all' || a.module === state.activity.module) && (!state.activity.search || `${a.user} ${a.entity} ${a.action}`.toLowerCase().includes(state.activity.search.toLowerCase())))); }
+  if (e.target.id === 'globalSearchInput') { runGlobalSearch(e.target.value); }
+});
+document.addEventListener('change', (e) => {
+  if (e.target.id === 'userRoleFilter') { state.users.role = e.target.value; state.users.page = 1; document.getElementById('usersTableWrap').innerHTML = renderUsersTableBody(); }
+  if (e.target.id === 'userStatusFilter') { state.users.status = e.target.value; state.users.page = 1; document.getElementById('usersTableWrap').innerHTML = renderUsersTableBody(); }
+  if (e.target.id === 'contentTypeFilter') { state.content.type = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableBody(); }
+  if (e.target.id === 'contentStatusFilter') { state.content.status = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableBody(); }
+  if (e.target.id === 'reportTypeFilter') { state.reports.type = e.target.value; state.reports.page = 1; document.getElementById('reportsTableWrap').innerHTML = renderReportsTableBody(); }
+  if (e.target.id === 'activityModuleFilter') { state.activity.module = e.target.value; renderApp(); }
+});
+document.addEventListener('submit', (e) => {
+  if (e.target.id === 'loginIdForm') {
+    e.preventDefault();
+    const a = state.auth;
+    a.empId = document.getElementById('f-id').value.trim();
+    a.error = ''; a.loading = true; renderAuth();
+    setTimeout(() => {
+      const match = AUTH_USERS.find(u => u.id === a.empId);
+      a.loading = false;
+      if (!match) { a.error = 'Employee ID not found. Try the demo IDs shown below.'; renderAuth(); return; }
+      a.matchedUser = match; a.step = 'otp'; renderAuth();
+    }, 700);
+    return;
+  }
+  if (e.target.id === 'loginOtpForm') {
+    e.preventDefault();
+    const a = state.auth;
+    a.error = ''; a.loading = true; renderAuth();
+    setTimeout(() => {
+      a.loading = false;
+      CURRENT_ADMIN = a.matchedUser;
+      state.authenticated = true;
+      state.route = 'dashboard';
+      loadRouteData('dashboard');
+      renderApp();
+      showAppScreen();
+      showToast('success', `Welcome back, ${CURRENT_ADMIN.name.split(' ')[0]}.`);
+    }, 700);
+    return;
+  }
+  if (e.target.id === 'quickNotifForm') {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    notifications.unshift({ id: `N-${notifIdSeq++}`, title: fd.get('title'), desc: fd.get('desc'), audience: fd.get('audience'), type: 'info', unread: true, time: new Date().toISOString() });
+    e.target.reset();
+    renderApp();
+    showToast('success', 'Notification sent.');
+  }
+  if (e.target.id === 'settingsGeneralForm') { e.preventDefault(); showToast('success', 'Settings saved.'); }
+});
+
+function handleAction(action, id, el) {
+  if (action === 'qa-add-user') return openUserForm();
+  if (action === 'add-user') return openUserForm();
+  if (action === 'edit-user') return openUserForm(users.find(u => u.id === id));
+  if (action === 'view-user') {
+    const u = users.find(x => x.id === id);
+    openDetailPanel({
+      title: u.name, subtitle: `${u.role} · ${u.id}`,
+      bodyHtml: dpSection('', [['Email', esc(u.email)], ['Phone', esc(u.phone)], ['Role', esc(u.role)], ['Territory', esc(u.territory)],
+        ['Status', `<span class="badge ${statusBadgeClass(u.status)}">${u.status}</span>`], ['Last active', u.lastActive === '-' ? '-' : fmtDateTime(u.lastActive)]]),
+      footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button><button class="btn btn-primary" data-action="edit-user" data-id="${u.id}">${icons.edit}Edit</button>`,
+    });
+    return;
+  }
+  if (action === 'toggle-user') {
+    const u = users.find(x => x.id === id);
+    if (u.status === 'Active') {
+      openConfirm({ title: 'Deactivate user?', message: `${u.name} will lose access to the app immediately.`, confirmLabel: 'Deactivate', danger: true, onConfirm: () => { u.status = 'Inactive'; logActivity('Users', 'Deactivate', u.name); renderApp(); showToast('success', `${u.name} has been deactivated.`); } });
+    } else {
+      u.status = 'Active'; logActivity('Users', 'Activate', u.name); renderApp(); showToast('success', `${u.name} has been activated.`);
+    }
+    return;
+  }
+  if (action === 'delete-user') {
+    const u = users.find(x => x.id === id);
+    openConfirm({ title: 'Delete user?', message: `This will permanently remove ${u.name}'s account. This cannot be undone.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { users = users.filter(x => x.id !== id); logActivity('Users', 'Delete', u.name); renderApp(); showToast('success', 'User deleted.'); } });
+    return;
+  }
+
+  if (action === 'qa-add-content' || action === 'add-content') return openContentForm();
+  if (action === 'edit-content') return openContentForm(masterData.find(m => m.id === id));
+  if (action === 'view-content') {
+    const m = masterData.find(x => x.id === id);
+    const rows = [['Type', esc(m.type)], ['Code', esc(m.code)], ['Owner', esc(m.owner)], ['Status', `<span class="badge ${statusBadgeClass(m.status)}">${m.status}</span>`], ['Updated', fmtDate(m.updatedAt)]];
+    let extra = '';
+    if (m.type === 'Outlet' && m.accountNumber) {
+      extra = dpSection('Account information', [['Dealer', esc(m.dealer)], ['CMS code', esc(m.cmsCode)], ['TSM', `${esc(m.tsmName)} (${esc(m.tsmPhone)})`], ['Divisional Manager', `${esc(m.dmName)} (${esc(m.dmPhone)})`], ['Account number', esc(m.accountNumber)], ['Account balance', `<span style="color:${m.accountBalance ? 'var(--danger)' : 'var(--success)'};">₹${m.accountBalance.toLocaleString('en-IN')}</span>`]]);
+    }
+    openDetailPanel({ title: m.title, subtitle: m.type, bodyHtml: dpSection('', rows) + extra, footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button><button class="btn btn-primary" data-action="edit-content" data-id="${m.id}">${icons.edit}Edit</button>` });
+    return;
+  }
+  if (action === 'toggle-content') {
+    const m = masterData.find(x => x.id === id);
+    if (m.status !== 'Archived') {
+      openConfirm({ title: 'Archive this item?', message: `"${m.title}" will be archived and hidden from the field app.`, confirmLabel: 'Archive', danger: true, onConfirm: () => { m.status = 'Archived'; m.updatedAt = new Date().toISOString(); logActivity('Content / Data', 'Archive', m.title); renderApp(); showToast('success', 'Item archived.'); } });
+    } else {
+      m.status = 'Published'; m.updatedAt = new Date().toISOString(); logActivity('Content / Data', 'Publish', m.title); renderApp(); showToast('success', 'Item published.');
+    }
+    return;
+  }
+  if (action === 'delete-content') {
+    const m = masterData.find(x => x.id === id);
+    openConfirm({ title: 'Delete item?', message: `"${m.title}" will be permanently removed from master data.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { masterData = masterData.filter(x => x.id !== id); logActivity('Content / Data', 'Delete', m.title); renderApp(); showToast('success', 'Item deleted.'); } });
+    return;
+  }
+
+  if (action === 'view-indent') {
+    const i = indents.find(x => x.id === id);
+    const stepIdx = INDENT_STEPS.indexOf(i.status);
+    openDetailPanel({
+      title: i.id, subtitle: i.outletName,
+      bodyHtml: dpSection('', [['Dealer', esc(i.dealerName)], ['Product', esc(i.product)], ['Quantity', `${i.quantity.toLocaleString('en-IN')} ${esc(i.unit)}`], ['Required date', fmtDate(i.requiredDate)]])
+        + `<div class="dp-section"><div class="dp-section-title">Fulfilment status</div><div class="indent-status-row">${INDENT_STEPS.map((st, idx) => `<span class="indent-status-step ${idx <= stepIdx ? 'done' : ''}">${idx <= stepIdx ? icons.checkCircle : icons.info}<span>${INDENT_STATUS_LABEL[st]}</span></span>`).join('')}</div></div>`,
+      footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button>${i.status !== 'C' ? `<button class="btn btn-primary" data-action="advance-indent" data-id="${i.id}">${icons.refresh}Advance status</button>` : ''}`,
+    });
+    return;
+  }
+  if (action === 'advance-indent') {
+    const i = indents.find(x => x.id === id);
+    const idx = INDENT_STEPS.indexOf(i.status);
+    if (idx < INDENT_STEPS.length - 1) { i.status = INDENT_STEPS[idx + 1]; logActivity('Operations', 'Advance indent', `${i.id} → ${INDENT_STATUS_LABEL[i.status]}`); }
+    closeDetailPanel(); renderApp(); showToast('success', `${i.id} moved to "${INDENT_STATUS_LABEL[i.status]}".`);
+    return;
+  }
+  if (action === 'cancel-indent') {
+    const i = indents.find(x => x.id === id);
+    openConfirm({ title: 'Cancel indent?', message: `${i.id} for ${i.outletName} will be marked as cancelled and removed from the active list.`, confirmLabel: 'Cancel Indent', danger: true, onConfirm: () => { indents = indents.filter(x => x.id !== id); logActivity('Operations', 'Cancel indent', i.id); renderApp(); showToast('success', 'Indent cancelled.'); } });
+    return;
+  }
+
+  if (action === 'view-audit') {
+    const a = auditForms.find(x => x.id === id);
+    openDetailPanel({
+      title: a.outletName, subtitle: `RO Audit Form · ${a.refNo}`,
+      bodyHtml: dpSection('RO details', [['Reg. No', esc(a.regNo)], ['TSM', esc(a.tsmName)], ['Divisional Manager', esc(a.divisionalManager)], ['Visit date', fmtDate(a.visitDate)], ['Previous visit', fmtDate(a.prevVisitDate)], ['Status', `<span class="badge ${statusBadgeClass(a.status)}">${a.status}</span>`]])
+        + dpSection('Submission', [['Photos captured', `${a.photosCaptured} / 2`], ['Attendees logged', a.attendeeCount]]),
+      footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button><button class="btn btn-danger" data-action="delete-audit" data-id="${a.id}">${icons.trash}Delete</button>`,
+    });
+    return;
+  }
+  if (action === 'delete-audit') {
+    const a = auditForms.find(x => x.id === id);
+    openConfirm({ title: 'Delete audit form?', message: `The RO Audit Form for ${a.outletName} (${a.refNo}) will be permanently removed.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { auditForms = auditForms.filter(x => x.id !== id); logActivity('Operations', 'Delete audit', `${a.outletName} (${a.refNo})`); closeDetailPanel(); renderApp(); showToast('success', 'Audit form deleted.'); } });
+    return;
+  }
+
+  if (action === 'view-tracker') {
+    const r = monthlyTracker.find(x => x.outletName === id);
+    openDetailPanel({
+      title: r.outletName, subtitle: `RO Monthly Tracker · ${r.month}`,
+      bodyHtml: dpSection('', [['TSM', esc(r.tsmName)], ['Completion', `${r.percentage}%`], ['Status', `<span class="badge ${statusBadgeClass(trackerStatusLabel(r))}">${trackerStatusLabel(r)}</span>`]])
+        + `<div class="dp-section"><div class="dp-section-title">Open points</div>${r.openPoints.length ? `<div class="dp-chip-list">${r.openPoints.map(p => `<span class="chip" style="cursor:default;">${esc(p)}</span>`).join('')}</div>` : `<p style="font-size:13px;color:var(--text-secondary);">No open points — fully compliant.</p>`}</div>`,
+    });
+    return;
+  }
+
+  if (action === 'view-tsm') {
+    const t = users.find(x => x.id === id);
+    const assigned = masterData.filter(m => m.type === 'Outlet' && m.tsmName === t.name);
+    const tAudits = auditForms.filter(a => a.tsmName === t.name);
+    const tTracker = monthlyTracker.filter(r => r.tsmName === t.name);
+    const tIndents = indents.filter(i => assigned.some(o => o.title === i.outletName));
+    openDetailPanel({
+      title: t.name, subtitle: `${t.role} · ${t.territory}`,
+      bodyHtml: dpSection('Contact', [['Email', esc(t.email)], ['Phone', esc(t.phone)], ['Status', `<span class="badge ${statusBadgeClass(t.status)}">${t.status}</span>`]])
+        + dpSection('Field activity', [['Assigned outlets', assigned.length], ['Audit forms submitted', tAudits.length], ['Tracker records', tTracker.length], ['Indents raised', tIndents.length]])
+        + (assigned.length ? `<div class="dp-section"><div class="dp-section-title">Assigned outlets</div><div class="dp-chip-list">${assigned.map(o => `<span class="chip" style="cursor:default;">${esc(o.title)}</span>`).join('')}</div></div>` : ''),
+      footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button><button class="btn btn-primary" data-action="edit-user" data-id="${t.id}">${icons.edit}Edit</button>`,
+    });
+    return;
+  }
+
+  if (action === 'view-account') {
+    const m = masterData.find(x => x.id === id);
+    openDetailPanel({
+      title: m.title, subtitle: 'Account Information',
+      bodyHtml: dpSection('Outlet', [['Dealer', esc(m.dealer)], ['CMS code', esc(m.cmsCode)], ['TSM', `${esc(m.tsmName)} (${esc(m.tsmPhone)})`], ['Divisional Manager', `${esc(m.dmName)} (${esc(m.dmPhone)})`]])
+        + dpSection('Account', [['Account number', esc(m.accountNumber)], ['Outstanding balance', `<span style="color:${m.accountBalance ? 'var(--danger)' : 'var(--success)'};">₹${m.accountBalance.toLocaleString('en-IN')}</span>`]]),
+    });
+    return;
+  }
+
+  if (action === 'qa-review-tasks') { state.operations.tab = 'tasks'; return navigate('operations'); }
+  if (action === 'qa-master-sync') { state.settingsTab = 'sync'; return navigate('settings'); }
+  if (action === 'qa-generate-report') return navigate('reports');
+  if (action === 'generate-report') {
+    const s = state.reports;
+    s.generating = true; s.genError = false; renderApp();
+    setTimeout(() => {
+      s.generating = false;
+      const willFail = Math.random() < 0.2;
+      if (willFail) {
+        s.genError = true; renderApp(); showToast('error', 'Report generation failed.');
+      } else {
+        const rpt = { id: `RPT-${rptIdSeq++}`, name: 'Ad-hoc Analytics Report', type: ['Sales', 'Inventory', 'Audit', 'Indent'][Math.floor(Math.random() * 4)], dateRange: 'Custom range', generatedBy: CURRENT_ADMIN.name, generatedAt: new Date().toISOString(), status: 'Ready', sizeKb: Math.round(150 + Math.random() * 800) };
+        reports.unshift(rpt); logActivity('Reports', 'Generate', rpt.name);
+        renderApp(); showToast('success', 'Report generated successfully.');
+      }
+    }, 1100);
+    return;
+  }
+  if (action === 'download-report') { showToast('info', 'Downloading report (demo only).'); return; }
+  if (action === 'view-report') {
+    const r = reports.find(x => x.id === id);
+    openDetailPanel({
+      title: r.name, subtitle: r.type,
+      bodyHtml: dpSection('', [['Date range', esc(r.dateRange)], ['Generated by', esc(r.generatedBy)], ['Generated at', fmtDateTime(r.generatedAt)], ['Status', `<span class="badge ${statusBadgeClass(r.status)}">${r.status}</span>`], ['Size', r.sizeKb ? r.sizeKb + ' KB' : '-']]),
+      footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button>${r.status === 'Ready' ? `<button class="btn btn-primary" data-action="download-report" data-id="${r.id}">${icons.download}Download</button>` : ''}`,
+    });
+    return;
+  }
+  if (action === 'delete-report') {
+    const r = reports.find(x => x.id === id);
+    openConfirm({ title: 'Delete report?', message: `"${r.name}" will be permanently deleted.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { reports = reports.filter(x => x.id !== id); logActivity('Reports', 'Delete', r.name); renderApp(); showToast('success', 'Report deleted.'); } });
+    return;
+  }
+
+  if (action === 'qa-send-notif' || action === 'compose-notif') {
+    openFormModal({
+      title: 'Compose Notification', submitLabel: 'Send',
+      bodyHtml: `
+        <div class="field"><label>Title</label><input class="input" name="title" required /></div>
+        <div class="field"><label>Message</label><textarea class="input" name="desc" required></textarea></div>
+        <div class="field"><label>Audience</label><select class="input" name="audience"><option>All Users</option><option>All Admins</option><option>TSM - Ahmedabad</option><option>HOS</option></select></div>
+        <div class="field"><label>Type</label><select class="input" name="type"><option value="info">Info</option><option value="success">Success</option><option value="warning">Warning</option><option value="danger">Critical</option></select></div>`,
+      onSubmit: (fd) => {
+        notifications.unshift({ id: `N-${notifIdSeq++}`, title: fd.get('title'), desc: fd.get('desc'), audience: fd.get('audience'), type: fd.get('type'), unread: true, time: new Date().toISOString() });
+        logActivity('Notifications', 'Send', fd.get('title'));
+        closeModal(); if (state.route === 'notifications') renderApp(); showToast('success', 'Notification sent.');
+      }
+    });
+    return;
+  }
+  if (action === 'notif-read') { const n = notifications.find(x => x.id === id); n.unread = false; renderApp(); return; }
+  if (action === 'notif-delete') {
+    openConfirm({ title: 'Delete notification?', message: 'This notification will be permanently removed.', confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { notifications = notifications.filter(x => x.id !== id); renderApp(); showToast('success', 'Notification deleted.'); } });
+    return;
+  }
+}
+
+function openUserForm(u) {
+  openFormModal({
+    title: u ? 'Edit User' : 'Add User', submitLabel: u ? 'Save changes' : 'Add User', bodyHtml: userFormBody(u),
+    onSubmit: (fd) => {
+      const data = { name: fd.get('name'), email: fd.get('email'), phone: fd.get('phone'), role: fd.get('role'), territory: fd.get('territory') };
+      if (u) { Object.assign(u, data); logActivity('Users', 'Update', u.name); showToast('success', 'User updated.'); }
+      else { users.push({ id: `U-${userIdSeq++}`, status: 'Pending', lastActive: '-', ...data }); logActivity('Users', 'Create', data.name); showToast('success', 'User added.'); }
+      closeModal(); closeDetailPanel(); if (state.route === 'users') renderApp();
+    }
+  });
+}
+function openContentForm(m) {
+  openFormModal({
+    title: m ? 'Edit Item' : 'Add Data Item', submitLabel: m ? 'Save changes' : 'Add Item', bodyHtml: contentFormBody(m),
+    onSubmit: (fd) => {
+      const data = { title: fd.get('title'), type: fd.get('type'), code: fd.get('code'), owner: fd.get('owner'), status: fd.get('status') };
+      if (m) { Object.assign(m, data); m.updatedAt = new Date().toISOString(); logActivity('Content / Data', 'Update', m.title); showToast('success', 'Item updated.'); }
+      else { masterData.push({ id: `MD-${mdIdSeq++}`, updatedAt: new Date().toISOString(), ...data }); logActivity('Content / Data', 'Create', data.title); showToast('success', 'Item added.'); }
+      closeModal(); closeDetailPanel(); if (state.route === 'content') renderApp();
+    }
+  });
+}
+
+document.addEventListener('focusin', (e) => { if (e.target.id === 'globalSearchInput') runGlobalSearch(e.target.value); });
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('globalSearchInput')?.focus(); }
+  if (e.key === 'Escape') { document.getElementById('globalSearchResults')?.classList.remove('open'); closeAllDropdowns(); closeModal(); closeDetailPanel(); }
+});
+
+/* ==================== init ==================== */
+try { applyTheme(localStorage.getItem('mm-admin-theme') === 'dark' ? 'dark' : 'light'); } catch (e) { applyTheme('light'); }
+showAuthScreen();
+window.addEventListener('hashchange', () => { if (state.authenticated) navigate(location.hash.slice(1)); });
+</script>
+</body>
+</html>
