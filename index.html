@@ -1842,6 +1842,37 @@ const mockApi = {
   getAccountInfo(outletId) {
     return call(() => ACCOUNT_INFO[outletId] || null);
   },
+
+  // Prototype only (Notifications) — derived from existing pending-tracker/CRA-draft data
+  // rather than a real notification/timestamp system, purely to demonstrate the UI.
+  getNotifications() {
+    return call(() => {
+      const outlets = appState.role === 'TSM' ? tsmOutlets(appState.user.id) : tsmOutlets(appState.selectedTsmId);
+      const items = [];
+      MONTHLY_TRACKER_RECORDS
+        .filter((r) => outlets.some((o) => o.id === r.outletId) && r.percentage < 100)
+        .sort((a, b) => a.percentage - b.percentage)
+        .slice(0, 3)
+        .forEach((r) => items.push({
+          type: 'tracker', title: 'Monthly Tracker pending',
+          desc: `${r.outletName} is at ${r.percentage}% — resume to finish this month's checklist.`,
+          time: 'Today', unread: true, outletId: r.outletId,
+        }));
+      CRA_DRAFTS
+        .filter((c) => outlets.some((o) => o.id === c.outletId))
+        .forEach((c) => {
+          const vals = Object.values(c.progress);
+          const pct = Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
+          items.push({
+            type: 'cra', title: 'RO Audit in progress',
+            desc: `${c.outletName} is at ${pct}% — continue the audit from where you left off.`,
+            time: 'Yesterday', unread: true,
+          });
+        });
+      items.push({ type: 'sync', title: 'Master data synced', desc: 'Outlet and TSM roster data is up to date.', time: '2 days ago', unread: false });
+      return items;
+    });
+  },
 };
 
 return {mockApi};
@@ -2718,6 +2749,39 @@ const {mockApi} = Modules['mock-api'];
 const {icons} = Modules['components/icons'];
 const {skeletonList, errorState} = Modules['components/skeleton'];
 const {showToast} = Modules['components/toast'];
+const {openSheet} = Modules['components/modal'];
+
+const NOTIF_STYLE = {
+  tracker: { icon: 'checkCircle', bg: 'var(--info-light)', color: 'var(--info)' },
+  cra: { icon: 'shield', bg: 'var(--warning-light)', color: 'var(--warning)' },
+  sync: { icon: 'refresh', bg: 'var(--success-light)', color: 'var(--success)' },
+};
+
+// PROTOTYPE — Notifications (see conversation). Opens a sheet listing pending-work reminders
+// derived from existing Monthly Tracker / CRA draft data.
+function openNotificationsSheet() {
+  openSheet({
+    title: 'Notifications',
+    bodyHtml: `<div id="notif-list">${skeletonList(3)}</div>`,
+  });
+  mockApi.getNotifications().then((items) => {
+    const el = document.getElementById('notif-list');
+    if (!items.length) { el.innerHTML = '<p style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px 0;">You\'re all caught up.</p>'; return; }
+    el.innerHTML = items.map((n) => {
+      const s = NOTIF_STYLE[n.type];
+      return `
+      <div class="notif-card ${n.unread ? 'unread' : ''}" style="padding:12px 0;border-bottom:1px solid var(--divider);">
+        <span class="notif-icon" style="background:${s.bg};color:${s.color};">${icons[s.icon]}</span>
+        <div style="flex:1;min-width:0;">
+          <div class="n-title">${n.title}</div>
+          <div class="n-desc">${n.desc}</div>
+          <div class="n-time">${n.time}</div>
+        </div>
+        ${n.unread ? '<span class="notif-unread-dot"></span>' : ''}
+      </div>`;
+    }).join('');
+  });
+}
 
 // Smooth curve through points via midpoint-control cubic beziers (lightweight Catmull-Rom stand-in).
 function smoothPath(points) {
@@ -2746,7 +2810,11 @@ function liquidGauge(pct, color) {
 
 function render(container) {
   const body = mountScreen(container, {
-    header: { title: 'Dashboard', showMenu: true, showProfile: true },
+    header: { title: 'Dashboard', showMenu: true, showProfile: true, rightHtml: `
+      <span class="header-badge-wrap">
+        <button class="icon-btn" id="notif-btn" aria-label="Notifications">${icons.bell}</button>
+        <span class="header-badge" id="notif-count" style="display:none;"></span>
+      </span>` },
     bodyHtml: `
       <div class="field" style="margin-bottom:10px;">
         <select class="input" id="ro-picker"><option>All Retail Outlets</option></select>
@@ -2759,6 +2827,13 @@ function render(container) {
       <button class="btn btn-outline" id="sync-data-btn" style="margin-bottom:14px;color:var(--success);border-color:var(--success);">${icons.refresh} Sync Data</button>
       <div id="dash-content">${skeletonList(3)}</div>
     `,
+  });
+
+  container.querySelector('#notif-btn').addEventListener('click', openNotificationsSheet);
+  mockApi.getNotifications().then((items) => {
+    const unread = items.filter((n) => n.unread).length;
+    const badge = container.querySelector('#notif-count');
+    if (unread > 0) { badge.textContent = unread; badge.style.display = 'flex'; }
   });
 
   container.querySelector('#go-btn').addEventListener('click', () => loadDashboard(body));
