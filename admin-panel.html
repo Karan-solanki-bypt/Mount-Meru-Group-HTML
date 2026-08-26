@@ -151,8 +151,9 @@ img { max-width: 100%; display: block; }
 .input.error { border-color: var(--danger); }
 .field-error { color: var(--danger); font-size: 12px; margin-top: 6px; }
 textarea.input { height: auto; min-height: 84px; padding: 11px 13px; resize: vertical; }
-.checkbox-row { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--text-secondary); }
-.checkbox-row input { width: 17px; height: 17px; accent-color: var(--primary); }
+.checkbox-row { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); cursor: pointer; line-height: 1; }
+.checkbox-row input { width: 17px; height: 17px; margin: 0; flex-shrink: 0; accent-color: var(--primary); }
+.checkbox-group { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-md); background: var(--surface-alt); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 .form-grid .field.full { grid-column: 1 / -1; }
 
@@ -390,6 +391,8 @@ table.data-table { width: 100%; border-collapse: collapse; min-width: 720px; }
 .modal-actions .btn { flex: 1 1 0; width: auto; }
 .modal-card.form-modal { max-width: 540px; text-align: left; padding: 0; }
 .modal-card.form-modal .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 17px 22px; border-bottom: 1px solid var(--divider); }
+.form-progress-wrap { padding: 14px 22px 0; }
+.form-progress-label { font-size: 11px; color: var(--text-secondary); margin-top: 6px; font-weight: 600; }
 .modal-card.form-modal .modal-header h3 { font-size: 15.5px; font-weight: 700; margin: 0; }
 .modal-card.form-modal .modal-body { padding: 20px 22px 4px; max-height: 62vh; overflow-y: auto; }
 .modal-card.form-modal .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--divider); }
@@ -435,6 +438,14 @@ table.data-table { width: 100%; border-collapse: collapse; min-width: 720px; }
 .dp-row .dp-k { color: var(--text-secondary); flex: 0 0 auto; }
 .dp-row .dp-v { font-weight: 700; color: var(--text); text-align: right; }
 .dp-chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.dp-photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dp-photo-tile { border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); background: var(--surface-alt); }
+.dp-photo-tile img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+.dp-photo-tile button.dp-photo-btn { display: block; width: 100%; padding: 0; }
+.dp-photo-caption { padding: 7px 9px; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+.dp-photo-tile.missing { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; aspect-ratio: 4/3; color: var(--muted); border-style: dashed; }
+.dp-photo-tile.missing svg { width: 22px; height: 22px; }
+.dp-photo-tile.missing .dp-photo-caption { padding: 0; }
 
 /* ============ Mobile drawer (reuses the same drawer pattern as the phone app) ============ */
 .drawer-backdrop { position: fixed; inset: 0; background: rgba(12,12,16,0.52); z-index: var(--z-drawer); opacity: 0; pointer-events: none; transition: opacity 220ms var(--ease-standard); }
@@ -575,6 +586,8 @@ const icons = {
   truck: wrap('<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>'),
   sun: wrap('<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'),
   moon: wrap('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'),
+  camera: wrap('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>'),
+  gauge: wrap('<path d="M12 12L16 8"/><circle cx="12" cy="12" r="10"/><path d="M8 16a5 5 0 0 1 8 0"/>'),
   calendar: wrap('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
 };
 function icon(name, extraClass = '') { return `<span class="icon ${extraClass}">${icons[name] || icons.info}</span>`; }
@@ -584,40 +597,163 @@ function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('en
 function fmtDateTime(iso) { const d = new Date(iso); return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ', ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }); }
 
 /* ==================== mock data ==================== */
-const TERRITORIES = ['Ahmedabad', 'Gandhinagar', 'Vadodara', 'Surat', 'Rajkot'];
 
-let users = [
-  { id: 'U-1001', name: 'Rajesh Kumar', email: 'rajesh.kumar@mountmerugroup.com', phone: '+91 98765 43210', role: 'TSM', territory: 'Ahmedabad', status: 'Active', lastActive: '2026-08-25T08:10:00' },
-  { id: 'U-1002', name: 'Priya Sharma', email: 'priya.sharma@mountmerugroup.com', phone: '+91 98123 45678', role: 'HOS', territory: 'All Territories', status: 'Active', lastActive: '2026-08-25T07:40:00' },
-  { id: 'U-1003', name: 'Sunil Mehta', email: 'sunil.mehta@mountmerugroup.com', phone: '+91 98220 11223', role: 'TSM', territory: 'Gandhinagar', status: 'Active', lastActive: '2026-08-24T18:05:00' },
-  { id: 'U-1004', name: 'Ravi Iyer', email: 'ravi.iyer@mountmerugroup.com', phone: '+91 98330 22334', role: 'TSM', territory: 'Vadodara', status: 'Inactive', lastActive: '2026-08-12T11:20:00' },
-  { id: 'U-1005', name: 'Bhavik Shah', email: 'bhavik.shah@mountmerugroup.com', phone: '+91 98440 33445', role: 'TSM', territory: 'Surat', status: 'Active', lastActive: '2026-08-25T06:55:00' },
-  { id: 'U-1006', name: 'Naresh Oza', email: 'naresh.oza@mountmerugroup.com', phone: '+91 98550 44556', role: 'TSM', territory: 'Rajkot', status: 'Pending', lastActive: '-' },
-  { id: 'U-1007', name: 'Kiran Patel', email: 'kiran.patel@sghighway.ro.com', phone: '+91 98661 55667', role: 'RO', territory: 'Ahmedabad', status: 'Active', lastActive: '2026-08-25T09:02:00' },
-  { id: 'U-1008', name: 'Sanjay Desai', email: 'sanjay.desai@sarkhej.ro.com', phone: '+91 98772 66778', role: 'RO', territory: 'Ahmedabad', status: 'Active', lastActive: '2026-08-24T21:15:00' },
-  { id: 'U-1009', name: 'Anita Verma', email: 'anita.verma@mountmerugroup.com', phone: '+91 98883 77889', role: 'Admin', territory: 'All Territories', status: 'Active', lastActive: '2026-08-25T09:30:00' },
-  { id: 'U-1010', name: 'Ramesh Solanki', email: 'ramesh.solanki@gnsector21.ro.com', phone: '+91 98994 88990', role: 'RO', territory: 'Gandhinagar', status: 'Inactive', lastActive: '2026-07-30T14:40:00' },
-  { id: 'U-1011', name: 'Kalpesh Mehta', email: 'kalpesh.mehta@alkapuri.ro.com', phone: '+91 99005 99001', role: 'RO', territory: 'Vadodara', status: 'Active', lastActive: '2026-08-23T10:12:00' },
-  { id: 'U-1012', name: 'Nikunj Shah', email: 'nikunj.shah@vesu.ro.com', phone: '+91 99116 00112', role: 'RO', territory: 'Surat', status: 'Pending', lastActive: '-' },
+/* ---------- Roles & Access, a dynamic Role master, not a fixed list. Central Administrator
+   manages this here; every role dropdown/filter in the admin panel reads from `roles`, never a
+   hardcoded array. Permission shape (module x Create/Update-scope/Assign-Reassign/Review) and the
+   first 7 roles mirror the org's actual Organization Hierarchy Scope requirement; DM/DDM/TSM are
+   the 3 field roles the mobile app itself supports (Utilities/Constants.cs: USER_ROLE_DM/DDM/TSM). ---------- */
+const PERMISSION_MODULES = ['Users', 'Master Data', 'RO Audit', 'Reports', 'Notifications', 'Settings'];
+const UPDATE_SCOPES = ['None', 'Own only', 'Full'];
+function perm(create, update, assignReassign, review) { return { create, update, assignReassign, review }; }
+function emptyPerm() { return perm(false, 'None', false, false); }
+let roles = [
+  { id: 'ROLE-1', name: 'Central Administrator', permissions: { 'Users': perm(true, 'Full', true, true), 'Master Data': perm(true, 'Full', false, true), 'RO Audit': perm(false, 'None', false, true), 'Reports': perm(false, 'None', false, true), 'Notifications': perm(true, 'Full', false, true), 'Settings': perm(true, 'Full', false, true) } },
+  { id: 'ROLE-2', name: 'Group CEO', permissions: { 'RO Audit': perm(true, 'Own only', true, true) } },
+  { id: 'ROLE-3', name: 'CEO (Energy)', permissions: { 'RO Audit': perm(true, 'Own only', true, true) } },
+  { id: 'ROLE-4', name: 'Advisors', permissions: { 'RO Audit': perm(true, 'Own only', true, true) } },
+  { id: 'ROLE-5', name: 'General Manager (Energy)', permissions: { 'RO Audit': perm(true, 'Own only', true, true) } },
+  { id: 'ROLE-6', name: 'Cluster Manager', permissions: { 'RO Audit': perm(true, 'Own only', false, true) } },
+  { id: 'ROLE-7', name: 'RO Manager', permissions: { 'RO Audit': perm(true, 'Own only', false, true) } },
+  { id: 'ROLE-8', name: 'HOS', systemKey: 'HOS', permissions: { 'RO Audit': perm(false, 'Own only', true, true) } },
+  { id: 'ROLE-10', name: 'TSM', systemKey: 'TSM', permissions: { 'RO Audit': perm(true, 'Own only', false, false) } },
 ];
-let userIdSeq = 1013;
+let roleIdSeq = 11;
 
+/* ---------- Geography master (Zone > State > Division > District > Territory), real hierarchy
+   and sample rows from Mst_Zone/Mst_State/Mst_Division/Mst_District/Mst_Territory. ---------- */
+let geoZones = [
+  { id: 1, name: 'West Zone 1', code: 'WZ-1', isActive: true },
+  { id: 2, name: 'West Zone 2', code: 'WZ-2', isActive: true },
+  { id: 3, name: 'North Zone 1', code: 'NZ-1', isActive: true },
+];
+let geoStates = [
+  { id: 1, name: 'Gujarat', code: 'GJ', zoneId: 1, isActive: true },
+  { id: 2, name: 'Maharashtra', code: 'MH', zoneId: 2, isActive: true },
+  { id: 3, name: 'Rajasthan', code: 'RJ', zoneId: 3, isActive: true },
+];
+let geoDivisions = [
+  { id: 1, name: 'Ahmedabad Division', code: 'DPE', stateId: 1, isActive: true },
+  { id: 2, name: 'Surat Division', code: 'DSU', stateId: 1, isActive: true },
+  { id: 3, name: 'Pune Division', code: 'DPU', stateId: 2, isActive: true },
+  { id: 4, name: 'Jaipur Division', code: 'DJP', stateId: 3, isActive: true },
+];
+let geoDistricts = [
+  { id: 1, name: 'Ahmedabad', code: 'AMD', divisionId: 1, isActive: true },
+  { id: 2, name: 'Gandhinagar', code: 'GNR', divisionId: 1, isActive: true },
+  { id: 3, name: 'Surat', code: 'SUR', divisionId: 2, isActive: true },
+  { id: 4, name: 'Vadodara', code: 'VAD', divisionId: 2, isActive: true },
+  { id: 5, name: 'Pune', code: 'PUN', divisionId: 3, isActive: true },
+  { id: 6, name: 'Nashik', code: 'NAS', divisionId: 3, isActive: true },
+  { id: 7, name: 'Jaipur', code: 'JAI', divisionId: 4, isActive: true },
+  { id: 8, name: 'Udaipur', code: 'UDR', divisionId: 4, isActive: true },
+];
+let geoTerritories = [
+  { id: 1, name: 'Ahmedabad North', code: 'T-AMD-01', districtId: 1, isActive: true },
+  { id: 2, name: 'Ahmedabad South', code: 'T-AMD-02', districtId: 1, isActive: true },
+  { id: 3, name: 'Gandhinagar', code: 'T-GNR-01', districtId: 2, isActive: true },
+  { id: 4, name: 'Surat Central', code: 'T-SUR-01', districtId: 3, isActive: true },
+  { id: 5, name: 'Vadodara East', code: 'T-VAD-01', districtId: 4, isActive: true },
+  { id: 6, name: 'Pune West', code: 'T-PUN-01', districtId: 5, isActive: true },
+  { id: 7, name: 'Nashik Rural', code: 'T-NAS-01', districtId: 6, isActive: true },
+  { id: 8, name: 'Jaipur City', code: 'T-JAI-01', districtId: 7, isActive: true },
+  { id: 9, name: 'Udaipur Highway', code: 'T-UDR-01', districtId: 8, isActive: true },
+];
+let geoIdSeq = { zone: 4, state: 4, division: 5, district: 9, territory: 10 };
+const GEO_LEVELS = [
+  { key: 'zone', label: 'Zone', plural: 'Zones', list: () => geoZones, parentKey: null },
+  { key: 'state', label: 'State', plural: 'States', list: () => geoStates, parentKey: 'zone', parentField: 'zoneId' },
+  { key: 'division', label: 'Division', plural: 'Divisions', list: () => geoDivisions, parentKey: 'state', parentField: 'stateId' },
+  { key: 'district', label: 'District', plural: 'Districts', list: () => geoDistricts, parentKey: 'division', parentField: 'divisionId' },
+  { key: 'territory', label: 'Territory', plural: 'Territories', list: () => geoTerritories, parentKey: 'district', parentField: 'districtId' },
+];
+function geoName(level, id) { const l = GEO_LEVELS.find(x => x.key === level); const r = l ? l.list().find(x => x.id === id) : null; return r ? r.name : '-'; }
+function userScopeLabel(u) {
+  if (u.territoryId) return geoName('territory', u.territoryId);
+  if (u.districtId) return geoName('district', u.districtId) + ' (District)';
+  if (u.divisionId) return geoName('division', u.divisionId) + ' (Division)';
+  if (u.stateId) return geoName('state', u.stateId) + ' (State)';
+  return 'All Territories';
+}
+// Some pages (TSM Management, the outlet form's TSM/DM pickers) are inherently about one
+// specific field role, not any role. They look the role up by this stable systemKey rather than
+// its display name, so renaming "TSM" or "HOS" in Roles & Access doesn't silently break them.
+function roleNameBySystemKey(key) { const r = roles.find(x => x.systemKey === key); return r ? r.name : key; }
+
+/* ---------- Users, real Nayara staff designations only (DM/DDM/TSM + admin-tier roles); retail
+   outlet franchisees don't hold app logins in the real system, they're contact fields on the RO
+   record instead (see Retail Outlets master below). Names kept from the earlier mock roster (so
+   every outlet/audit/tracker/report record that already references them stays valid), only the
+   roles, employee codes and geographic scope now reflect the real schema. ---------- */
+let users = [
+  { id: 'U-1001', name: 'Rajesh Kumar', sapcode: 'EMP10234', email: 'rajesh.kumar@mountmerugroup.com', phone: '+91 98765 43210', role: 'TSM', territoryId: 1, districtId: null, divisionId: null, stateId: null, status: 'Active', lastActive: '2026-08-25T08:10:00' },
+  { id: 'U-1002', name: 'Priya Sharma', sapcode: 'EMP10001', email: 'priya.sharma@mountmerugroup.com', phone: '+91 98123 45678', role: 'HOS', territoryId: null, districtId: null, divisionId: null, stateId: 1, status: 'Active', lastActive: '2026-08-25T07:40:00' },
+  { id: 'U-1003', name: 'Sunil Mehta', sapcode: 'EMP10236', email: 'sunil.mehta@mountmerugroup.com', phone: '+91 98220 11223', role: 'TSM', territoryId: 3, districtId: null, divisionId: null, stateId: null, status: 'Active', lastActive: '2026-08-24T18:05:00' },
+  { id: 'U-1004', name: 'Ravi Iyer', sapcode: 'EMP10237', email: 'ravi.iyer@mountmerugroup.com', phone: '+91 98330 22334', role: 'TSM', territoryId: 5, districtId: null, divisionId: null, stateId: null, status: 'Inactive', lastActive: '2026-08-12T11:20:00' },
+  { id: 'U-1005', name: 'Bhavik Shah', sapcode: 'EMP10245', email: 'bhavik.shah@mountmerugroup.com', phone: '+91 98440 33445', role: 'TSM', territoryId: 4, districtId: null, divisionId: null, stateId: null, status: 'Active', lastActive: '2026-08-25T06:55:00' },
+  { id: 'U-1006', name: 'Naresh Oza', sapcode: 'EMP10244', email: 'naresh.oza@mountmerugroup.com', phone: '+91 98550 44556', role: 'TSM', territoryId: 9, districtId: null, divisionId: null, stateId: null, status: 'Pending', lastActive: '-' },
+  { id: 'U-1007', name: 'Kiran Mehta', sapcode: 'EMP10236', email: 'kiran.mehta@mountmerugroup.com', phone: '+91 97920 21205', role: 'HOS', territoryId: null, districtId: null, divisionId: 1, stateId: null, status: 'Active', lastActive: '2026-08-24T12:00:00' },
+  { id: 'U-1008', name: 'Anita Verma', sapcode: 'EMP10000', email: 'anita.verma@mountmerugroup.com', phone: '+91 98883 77889', role: 'Central Administrator', territoryId: null, districtId: null, divisionId: null, stateId: null, status: 'Active', lastActive: '2026-08-25T09:30:00' },
+  { id: 'U-1009', name: 'Vikram Rana', sapcode: 'EMP10099', email: 'vikram.rana@mountmerugroup.com', phone: '+91 98111 22233', role: 'General Manager (Energy)', territoryId: null, districtId: null, divisionId: null, stateId: 1, status: 'Active', lastActive: '2026-08-20T10:00:00' },
+];
+let userIdSeq = 1010;
+
+/* ---------- Retail Outlets are stored in the same masterData array as Products/Price Lists/
+   Schemes (type discriminates), but Outlet rows now carry the real Mst_RO field set: outlet type
+   (COCO/DODO), category, fuel types offered, full geo hierarchy, and separate RO vs franchisee
+   contacts, franchisees are contact fields here, never separate user logins (see Users above). ---------- */
 let masterData = [
   { id: 'MD-2001', title: 'SG Highway', type: 'Outlet', code: 'RO10021', owner: 'Rajesh Kumar', status: 'Published', updatedAt: '2026-08-24T10:00:00',
-    dealer: 'Kiran Patel', tsmName: 'Rajesh Kumar', tsmPhone: '+91 98765 43210', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100000', accountNumber: 'ACC-RO10021', accountBalance: 42500 },
+    outletType: 'DODO', category: 'Highway', fuelMs: true, fuelHsd: true, fuelCng: false, fuelLpg: false,
+    zoneId: 1, stateId: 1, divisionId: 1, districtId: 1, territoryId: 1,
+    dealer: 'Kiran Patel', contactPerson: 'Kiran Patel', roEmail: 'ro10021@mountmerugroup.com', roMobile: '+91 98661 55667', franchiseeEmail: 'franchise.ro10021@gmail.com', franchiseeMobile: '+91 98661 55667',
+    regNo: 'REG-10021-2023', highwayNo: 'SH-41',
+    tsmName: 'Rajesh Kumar', tsmPhone: '+91 98765 43210', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100000', accountNumber: 'ACC-RO10021', accountBalance: 42500 },
   { id: 'MD-2002', title: 'Sarkhej Circle', type: 'Outlet', code: 'RO10022', owner: 'Rajesh Kumar', status: 'Published', updatedAt: '2026-08-23T15:20:00',
-    dealer: 'Sanjay Desai', tsmName: 'Rajesh Kumar', tsmPhone: '+91 98765 43210', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100001', accountNumber: 'ACC-RO10022', accountBalance: 0 },
+    outletType: 'COCO', category: 'Urban', fuelMs: true, fuelHsd: true, fuelCng: true, fuelLpg: false,
+    zoneId: 1, stateId: 1, divisionId: 1, districtId: 1, territoryId: 1,
+    dealer: 'Sanjay Desai', contactPerson: 'Sanjay Desai', roEmail: 'ro10022@mountmerugroup.com', roMobile: '+91 98772 66778', franchiseeEmail: 'franchise.ro10022@gmail.com', franchiseeMobile: '+91 98772 66778',
+    regNo: 'REG-10022-2023', highwayNo: '',
+    tsmName: 'Rajesh Kumar', tsmPhone: '+91 98765 43210', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100001', accountNumber: 'ACC-RO10022', accountBalance: 0 },
   { id: 'MD-2003', title: 'MS (Petrol)', type: 'Product', code: 'FUEL-MS', owner: 'Anita Verma', status: 'Published', updatedAt: '2026-08-20T09:00:00' },
   { id: 'MD-2004', title: 'HSD (Diesel)', type: 'Product', code: 'FUEL-HSD', owner: 'Anita Verma', status: 'Published', updatedAt: '2026-08-20T09:05:00' },
   { id: 'MD-2005', title: 'Auto LPG', type: 'Product', code: 'FUEL-LPG', owner: 'Anita Verma', status: 'Draft', updatedAt: '2026-08-18T13:40:00' },
   { id: 'MD-2006', title: 'Festive Season Price List', type: 'Price List', code: 'PL-2608', owner: 'Priya Sharma', status: 'Published', updatedAt: '2026-08-22T11:30:00' },
   { id: 'MD-2007', title: 'Q3 Retention Scheme', type: 'Scheme', code: 'SCH-Q3-26', owner: 'Priya Sharma', status: 'Published', updatedAt: '2026-08-19T16:00:00' },
   { id: 'MD-2008', title: 'Koba Circle', type: 'Outlet', code: 'RO10030', owner: 'Sunil Mehta', status: 'Archived', updatedAt: '2026-06-11T09:00:00',
-    dealer: 'Ashok Prajapati', tsmName: 'Sunil Mehta', tsmPhone: '+91 98220 11223', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100009', accountNumber: 'ACC-RO10030', accountBalance: 8900 },
+    outletType: 'DODO', category: 'Rural', fuelMs: true, fuelHsd: true, fuelCng: false, fuelLpg: false,
+    zoneId: 1, stateId: 1, divisionId: 1, districtId: 2, territoryId: 3,
+    dealer: 'Ashok Prajapati', contactPerson: 'Ashok Prajapati', roEmail: 'ro10030@mountmerugroup.com', roMobile: '+91 98994 88990', franchiseeEmail: 'franchise.ro10030@gmail.com', franchiseeMobile: '+91 98994 88990',
+    regNo: 'REG-10030-2023', highwayNo: '',
+    tsmName: 'Sunil Mehta', tsmPhone: '+91 98220 11223', dmName: 'Priya Sharma', dmPhone: '+91 98123 45678', cmsCode: 'CMS100009', accountNumber: 'ACC-RO10030', accountBalance: 8900 },
   { id: 'MD-2009', title: 'CNG', type: 'Product', code: 'FUEL-CNG', owner: 'Anita Verma', status: 'Published', updatedAt: '2026-08-20T09:10:00' },
   { id: 'MD-2010', title: 'Monsoon Safety Scheme', type: 'Scheme', code: 'SCH-MON-26', owner: 'Priya Sharma', status: 'Draft', updatedAt: '2026-08-15T12:00:00' },
 ];
 let mdIdSeq = 2011;
+
+/* ---------- RO Branding & CVP (Mst_RO_Branding_CVP), linked to an outlet by CMS code. ---------- */
+let roBranding = [
+  { id: 1000, cmsCode: 'CMS100000', roStatus: 'Active', roBranding: 'Nayara Energy - Refreshed', cvpCsc: true, cvpQlc: false, cvpMarshalling: false, cvpNitrogen: true, canopy: true },
+  { id: 1001, cmsCode: 'CMS100001', roStatus: 'Active', roBranding: 'Nayara Energy - New', cvpCsc: true, cvpQlc: false, cvpMarshalling: true, cvpNitrogen: true, canopy: false },
+  { id: 1002, cmsCode: 'CMS100009', roStatus: 'Inactive', roBranding: 'Legacy Branding', cvpCsc: false, cvpQlc: false, cvpMarshalling: false, cvpNitrogen: false, canopy: false },
+];
+let brandingIdSeq = 1003;
+
+/* ---------- Stock Variation Rules (Mst_StockVariationCalc), fuel stock-discrepancy thresholds
+   used by CRA fuel stock calculations. ---------- */
+let stockVariationRules = [
+  { id: 1, stockType: 'MS', meterPercent: '0.0-0.5%', description: 'Within acceptable limit', isActive: true },
+  { id: 2, stockType: 'MS', meterPercent: '0.5-1.0%', description: 'Minor variation - monitor', isActive: true },
+  { id: 3, stockType: 'MS', meterPercent: '1.0-1.5%', description: 'Requires investigation', isActive: true },
+  { id: 4, stockType: 'MS', meterPercent: '>1.5%', description: 'Critical - escalate to DM', isActive: true },
+  { id: 5, stockType: 'HSD', meterPercent: '0.0-0.3%', description: 'Within acceptable limit', isActive: true },
+  { id: 6, stockType: 'HSD', meterPercent: '0.3-0.8%', description: 'Minor variation - monitor', isActive: true },
+  { id: 7, stockType: 'HSD', meterPercent: '0.8-1.2%', description: 'Requires investigation', isActive: true },
+  { id: 8, stockType: 'HSD', meterPercent: '>1.2%', description: 'Critical - escalate to DM', isActive: true },
+  { id: 9, stockType: 'MS', meterPercent: '9.0%', description: 'Legacy variation band (superseded)', isActive: false },
+  { id: 10, stockType: 'HSD', meterPercent: '10.0%', description: 'Legacy variation band (superseded)', isActive: false },
+];
+let stockVarIdSeq = 11;
 
 /* ---------- Indents & Inventory (mirrors the mobile app's "Indent and Inventory" screen) ---------- */
 const INDENT_STATUS_LABEL = { P: 'Payment Pending', E: 'En-route', C: 'Completed' };
@@ -632,24 +768,221 @@ let indents = [
 ];
 let indentIdSeq = 3007;
 
-/* ---------- RO Audit Forms / CRA (mirrors the mobile app's "RO Audit Forms" screen) ---------- */
+/* ---------- RO Audit Forms / CRA (mirrors the mobile app's "RO Audit Forms" screen, same two
+   photo slots and attendance list the mobile app's capture flow collects) ---------- */
+const AUDIT_PHOTO_SLOTS = ['Sales Room + Board', 'RO from Opposite Side'];
 let auditForms = [
-  { id: 'CRA-4001', outletName: 'SG Highway', refNo: 'REF-10021', regNo: 'GJ01-AB-1021', tsmName: 'Rajesh Kumar', divisionalManager: 'Priya Sharma', visitDate: '2026-08-24', prevVisitDate: '2026-07-18', status: 'Completed', attendeeCount: 3, photosCaptured: 2 },
-  { id: 'CRA-4002', outletName: 'Sarkhej Circle', refNo: 'REF-10022', regNo: 'GJ01-AB-1022', tsmName: 'Rajesh Kumar', divisionalManager: 'Priya Sharma', visitDate: '2026-08-20', prevVisitDate: '2026-07-10', status: 'Completed', attendeeCount: 2, photosCaptured: 2 },
-  { id: 'CRA-4003', outletName: 'Koba Circle', refNo: 'REF-10030', regNo: 'GJ18-AB-1030', tsmName: 'Sunil Mehta', divisionalManager: 'Priya Sharma', visitDate: '2026-08-22', prevVisitDate: '2026-06-15', status: 'Local (unsynced)', attendeeCount: 1, photosCaptured: 1 },
-  { id: 'CRA-4004', outletName: 'Alkapuri', refNo: 'REF-10041', regNo: 'GJ06-AB-1041', tsmName: 'Ravi Iyer', divisionalManager: 'Priya Sharma', visitDate: '2026-08-19', prevVisitDate: '2026-05-30', status: 'Overdue', attendeeCount: 0, photosCaptured: 0 },
-  { id: 'CRA-4005', outletName: 'Vesu', refNo: 'REF-10053', regNo: 'GJ05-AB-1053', tsmName: 'Bhavik Shah', divisionalManager: 'Priya Sharma', visitDate: '2026-08-21', prevVisitDate: '2026-07-01', status: 'Completed', attendeeCount: 2, photosCaptured: 2 },
+  { id: 'CRA-4001', outletName: 'SG Highway', refNo: 'REF-10021', regNo: 'GJ01-AB-1021', tsmName: 'Rajesh Kumar', divisionalManager: 'Priya Sharma', visitDate: '2026-08-24', prevVisitDate: '2026-07-18', status: 'Completed', attendees: ['Kiran Patel', 'Sanjay Rathod', 'Meena Joshi'], photosCaptured: 2 },
+  { id: 'CRA-4002', outletName: 'Sarkhej Circle', refNo: 'REF-10022', regNo: 'GJ01-AB-1022', tsmName: 'Rajesh Kumar', divisionalManager: 'Priya Sharma', visitDate: '2026-08-20', prevVisitDate: '2026-07-10', status: 'Completed', attendees: ['Sanjay Desai', 'Vikram Rana'], photosCaptured: 2 },
+  { id: 'CRA-4003', outletName: 'Koba Circle', refNo: 'REF-10030', regNo: 'GJ18-AB-1030', tsmName: 'Sunil Mehta', divisionalManager: 'Priya Sharma', visitDate: '2026-08-22', prevVisitDate: '2026-06-15', status: 'Local (unsynced)', attendees: ['Ashok Prajapati'], photosCaptured: 1 },
+  { id: 'CRA-4004', outletName: 'Alkapuri', refNo: 'REF-10041', regNo: 'GJ06-AB-1041', tsmName: 'Ravi Iyer', divisionalManager: 'Priya Sharma', visitDate: '2026-08-19', prevVisitDate: '2026-05-30', status: 'Overdue', attendees: [], photosCaptured: 0 },
+  { id: 'CRA-4005', outletName: 'Vesu', refNo: 'REF-10053', regNo: 'GJ05-AB-1053', tsmName: 'Bhavik Shah', divisionalManager: 'Priya Sharma', visitDate: '2026-08-21', prevVisitDate: '2026-07-01', status: 'Completed', attendees: ['Nikunj Shah', 'Rina Thakkar'], photosCaptured: 2 },
 ];
+auditForms.forEach(a => { a.attendeeCount = a.attendees.length; });
 
-/* ---------- RO Monthly Tracker (mirrors the mobile app's "RO Monthly Tracker" / "Pending Tasks" screens) ---------- */
-let monthlyTracker = [
-  { outletName: 'SG Highway', tsmName: 'Rajesh Kumar', month: 'August 2026', percentage: 100, completed: true, openPoints: [] },
-  { outletName: 'Sarkhej Circle', tsmName: 'Rajesh Kumar', month: 'August 2026', percentage: 60, completed: false, openPoints: ['Fire safety equipment tag expired', 'Canopy lighting not functional'] },
-  { outletName: 'Vastrapur', tsmName: 'Rajesh Kumar', month: 'August 2026', percentage: 0, completed: false, openPoints: ['Full checklist pending'] },
-  { outletName: 'Koba Circle', tsmName: 'Sunil Mehta', month: 'August 2026', percentage: 40, completed: false, openPoints: ['Price board not updated', 'Washroom cleanliness below standard'] },
-  { outletName: 'Alkapuri', tsmName: 'Ravi Iyer', month: 'August 2026', percentage: 100, completed: true, openPoints: [] },
-  { outletName: 'Vesu', tsmName: 'Bhavik Shah', month: 'August 2026', percentage: 80, completed: false, openPoints: ['Fire extinguisher refill due'] },
+/* ---------- The real CRA audit is not one flat record, it's a ~24-section form (Trn_RO_Info,
+   Trn_RO_Sale, Trn_RO_Stock, Trn_RO_Density, the POWER3 facility checklist, etc, see
+   DATABASE_TABLE_DOCUMENTATION.xlsx / ALL_DUMMY_DATA.xlsx, EOLRO_TrnRo* sheets). Every section
+   below uses the real field names from those sheets so the admin can review the whole form, not a
+   summary of it, sections a given visit didn't capture are simply left out of that record's
+   `sections` object and render as "Not captured" rather than being padded with fake data. ---------- */
+const CRA_FORM_SECTIONS = [
+  { key: 'roInfo', label: 'RO Info Summary' },
+  { key: 'confirmation', label: 'GPS & Signature Confirmation' },
+  { key: 'name', label: 'Franchisee / TSM Name Record' },
+  { key: 'genAmbience', label: 'General Ambience' },
+  { key: 'inspection', label: 'Inspection Standards' },
+  { key: 'power3', label: 'Facility Checklist (POWER3)' },
+  { key: 'schemaDiscipline', label: 'Scheme Discipline' },
+  { key: 'schemaFuelPrice', label: 'Fuel Price Display' },
+  { key: 'qtyQuality', label: 'Quantity & Quality (Seals)' },
+  { key: 'density', label: 'Density Check' },
+  { key: 'adultration', label: 'Adulteration Test' },
+  { key: 'stock', label: 'Stock Variation' },
+  { key: 'sale', label: 'Sales / Totaliser Reading' },
+  { key: 'dailyVerification', label: 'Daily Sales Verification' },
+  { key: 'performance', label: 'Sales Performance vs Target' },
+  { key: 'reconciliation', label: 'Payment Reconciliation' },
+  { key: 'salesTax', label: 'Sales Tax Reconciliation' },
+  { key: 'lubricant', label: 'Lubricant Sales Performance' },
+  { key: 'nonFuelActivity', label: 'Non-Fuel Brand Activity' },
+  { key: 'competitors', label: 'Competitor Info' },
+  { key: 'fleetUser', label: 'Fleet Customers' },
+  { key: 'availabilityLubricants', label: 'Lubricant & Oil Availability' },
+  { key: 'dryOut', label: 'Dry-Out Dates' },
+  { key: 'irregularity', label: 'Irregularities' },
 ];
+function sectionHasData(v) { return !!v && Object.keys(v).length > 0; }
+function fullCraSections(o) {
+  return {
+    roInfo: { craRefId: o.ref, craTotalScore: o.score, prevVisitDt: o.prevVisit, submittedDate: o.visitDate },
+    confirmation: { latitude: o.lat, longitude: o.lng, roSignatureCaptured: true, userSignatureCaptured: true },
+    name: { franchiseeName: o.franchisee, tsmDmName: o.tsmDm },
+    genAmbience: { type: 'MS', ratingSatisfactory: true, remarks: 'Satisfactory' },
+    inspection: { standardMet: 'Yes', remarks: 'Discussed with RO staff', type: 'HSD' },
+    power3: { canopyCleaned: true, toiletHygiene: true, fireSafety: true, forecourtCleanliness: true, tankFarm: true, yardLights: true, electricRoom: true, waterFacility: true, plasticDustbinRemoved: true, airFacility: true, bufferStrip: true, duCleaned: true, freeAirWaterToiletSignages: true, fsmCaps: true, fsmUniform: true, inOutSignages: true, msVentPipe: true, roGreenergy: true, toolBox: true, totemCleaned: true },
+    schemaDiscipline: { standard: 'Full', remarks: 'Compliant', validUptoDt: o.schemeValidTill, price: 6 },
+    schemaFuelPrice: { actualPriceMs: 97.8, correctPriceMs: 97.63, competitorPriceMs: 87.99, actualPriceHsd: 89.62, correctPriceHsd: 89.5, competitorPriceHsd: 88.1 },
+    qtyQuality: { wmSeals: 'Intact', totaliserSeals: 'Intact', delivery: 2, pump: 3, stampingDate: o.stampingDate, remarks: 'Within norms' },
+    density: { density15Inspection: 98.4, densityDealersAt15: 98.2, variationInLimit: true, actionTaken: 'None required' },
+    adultration: { sampleMs: 'Passed', hsdSample: 'Passed', sampleDt: o.visitDate, remark: 'Rectified on spot' },
+    stock: { stockPrevVisit: 4820, receipt: 6000, totalStock: 9200, actualStock: 9150, variation: -50, variationPercent: '0.4%', actionTaken: 'Within acceptable limit' },
+    sale: { category: 'Retail', make: o.franchisee, totaliserReadingOnDate: 645468.29, totalSalesReading: 3528.72, pump: 3, duNumber: 'DU-2' },
+    dailyVerification: { avgDailySales: 4980, noOfDaysNilSales: 0, prevCraAvgDailySales: 4720, remarks: 'Consistent with trend' },
+    performance: { targetMonth: 130000, salesMonth: 128500, prevYear: 118000, targetYear: 1500000, salesYear: 1465000, remarks: 'On track' },
+    reconciliation: { indentsEol: 'Yes', workingCapital: 78.2, creditExtendedToDealer: false, variationReason: 'N/A' },
+    salesTax: { lastPaidDate: o.taxPaidDate, taxAmount: 7900, salesTaxPaid: 7900, actualTax: 7900, variationReason: 'N/A' },
+    lubricant: { targetMonth: 4200, salesMonth: 4500, performanceRemarks: 'Above target' },
+    nonFuelActivity: { brandName: 'Nayara Care', valueSalesMonth: 6200, brandRemark: 'Steady sales' },
+    competitors: { type: 'HSD', outletName: 'Indian Oil Station', distanceEolRo: 1.2, nearestCompetitorMsPrice: 97.4, nearestCompetitorHsdPrice: 89.1 },
+    fleetUser: { fleetOwnerName: 'VRL Transport', noOfDays: 5, amount: 8200 },
+    availabilityLubricants: { oil2tAvailability: true, multiGradesAvailability: true, remark: 'Fully stocked' },
+    dryOut: { datesRecorded: 6, reasonForNil: 'N/A' },
+    irregularity: { natureIrregularity: 'None noted' },
+  };
+}
+function pickSections(full, keys) { const o = {}; keys.forEach(k => { o[k] = full[k]; }); return o; }
+const sgHighwayFull = fullCraSections({ ref: 'WZ-1/DPE/T-AMD-01/RO100/08-1/2026', score: 92, prevVisit: '2026-07-18', visitDate: '2026-08-24', lat: 23.0395, lng: 72.5992, franchisee: 'Kiran Patel', tsmDm: 'Rajesh Kumar', schemeValidTill: '2026-12-31', stampingDate: '2026-08-24', taxPaidDate: '2026-08-01' });
+const sarkhejFull = fullCraSections({ ref: 'WZ-1/DPE/T-AMD-01/RO101/08-1/2026', score: 88, prevVisit: '2026-07-10', visitDate: '2026-08-20', lat: 23.0106, lng: 72.5306, franchisee: 'Sanjay Desai', tsmDm: 'Rajesh Kumar', schemeValidTill: '2026-12-31', stampingDate: '2026-08-20', taxPaidDate: '2026-08-01' });
+const vesuFull = fullCraSections({ ref: 'WZ-1/DSU/T-SUR-01/RO106/08-1/2026', score: 90, prevVisit: '2026-07-01', visitDate: '2026-08-21', lat: 21.1458, lng: 72.7708, franchisee: 'Nikunj Shah', tsmDm: 'Bhavik Shah', schemeValidTill: '2026-12-31', stampingDate: '2026-08-21', taxPaidDate: '2026-08-01' });
+const kobaPartial = pickSections(fullCraSections({ ref: 'WZ-1/DPE/T-GNR-01/RO104/08-1/2026', score: 61, prevVisit: '2026-06-15', visitDate: '2026-08-22', lat: 23.2156, lng: 72.6369, franchisee: 'Ashok Prajapati', tsmDm: 'Sunil Mehta', schemeValidTill: '2026-12-31', stampingDate: '2026-08-22', taxPaidDate: '2026-07-01' }), ['roInfo', 'confirmation', 'name', 'genAmbience', 'inspection', 'power3', 'qtyQuality', 'density']);
+auditForms.find(a => a.id === 'CRA-4001').sections = sgHighwayFull;
+auditForms.find(a => a.id === 'CRA-4002').sections = sarkhejFull;
+auditForms.find(a => a.id === 'CRA-4003').sections = kobaPartial;
+auditForms.find(a => a.id === 'CRA-4004').sections = {};
+auditForms.find(a => a.id === 'CRA-4005').sections = vesuFull;
+
+function mockPhotoDataUri(label, sublabel) {
+  let hash = 0; for (const ch of label + sublabel) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  const palettes = [['#C23528', '#8F1F15'], ['#2569C9', '#183F7A'], ['#1B9A5A', '#0F6B3D'], ['#B8860A', '#7A5A06']];
+  const [c1, c2] = palettes[hash % palettes.length];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
+    <rect width="400" height="300" fill="url(#g)"/>
+    <circle cx="200" cy="118" r="44" fill="#ffffff" opacity="0.92"/>
+    <rect x="178" y="101" width="44" height="32" rx="6" fill="${c2}"/>
+    <circle cx="200" cy="118" r="11" fill="${c1}"/>
+    <text x="200" y="205" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" fill="#fff" text-anchor="middle">${label.replace(/&/g, '&amp;')}</text>
+    <text x="200" y="228" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="rgba(255,255,255,0.82)" text-anchor="middle">${sublabel.replace(/&/g, '&amp;')}</text>
+    <text x="200" y="270" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="rgba(255,255,255,0.55)" text-anchor="middle">MOCK PHOTO - DEMO DATA</text>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+/* ---------- RO Monthly Tracker (mirrors the mobile app's "RO Monthly Tracker" / "Pending Tasks"
+   screens), the real Trn_Monthly_Tracker table backing this is a ~55-item branding/facility/FSM
+   Yes-No checklist (see MonthlyTracker.Microservice/Models/TrnMonthlyTracker.cs), not a handful of
+   generic questions, so every outlet's record here carries the full real checklist. ---------- */
+const MONTHLY_TRACKER_QUESTIONS = [
+  { key: 'TotemPriceCondition', label: 'Totem price board condition' },
+  { key: 'DrivewayCondition', label: 'Driveway condition' },
+  { key: 'CanopyAvilable', label: 'Canopy available' },
+  { key: 'CanopyInfrastructureCondition', label: 'Canopy infrastructure condition' },
+  { key: 'FsmCompletedUniformAndShoes', label: 'FSM in complete uniform and shoes' },
+  { key: 'FsmWearingNameTags', label: 'FSM wearing name tags' },
+  { key: 'FsmTrained', label: 'FSM trained' },
+  { key: 'FsmGreetingCustomer', label: 'FSM greeting customer' },
+  { key: 'FsmShowingZeroToCustomer', label: 'FSM showing zero reading to customer' },
+  { key: 'FsmShowingFinalReadingToCustomer', label: 'FSM showing final reading to customer' },
+  { key: 'IsAutomationGoLive', label: 'Automation go-live completed' },
+  { key: 'DataCommunicatedAtBosandHos', label: 'Data communicated at BOS and HOS' },
+  { key: 'IsMposDeployed', label: 'mPOS deployed' },
+  { key: 'TransactionRoutedThroughMpos', label: 'Transactions routed through mPOS' },
+  { key: 'IsSalesRoomPaintedAsStandards', label: 'Sales room painted as per standards' },
+  { key: 'IsGreyAntiSkidMatOutsideBuilding', label: 'Grey anti-skid mat outside building' },
+  { key: 'IsWaterCoolerWorking', label: 'Water cooler working' },
+  { key: 'IsCoolerAreaClean', label: 'Cooler area clean' },
+  { key: 'IsGreyAntiSkidMatOutsideWaterCooler', label: 'Grey anti-skid mat outside water cooler' },
+  { key: 'IsValidCertificateFramedNearWaterCooler', label: 'Valid certificate framed near water cooler' },
+  { key: 'IsToiletConditionCleanAndHygienic', label: 'Toilet clean and hygienic' },
+  { key: 'IsToiletFeedbakMachineWorking', label: 'Toilet feedback machine working' },
+  { key: 'IsToiletAirFreshnerWorking', label: 'Toilet air freshener working' },
+  { key: 'IsToiletCleanAsPerRoaster', label: 'Toilet cleaned as per roster' },
+  { key: 'IsGreyAntiSkidMatOutsideToilet', label: 'Grey anti-skid mat outside toilet' },
+  { key: 'IsAlternatePowerAcosticWorking', label: 'Alternate power (acoustic) working' },
+  { key: 'IsLubricantDisplayedProminentlyAtRo', label: 'Lubricant displayed prominently at RO' },
+  { key: 'IsUnivisionUsedAsGuidelines', label: 'Univision used as guidelines' },
+  { key: 'IsRoStockBoardInGoodCondition', label: 'RO stock board in good condition' },
+  { key: 'IsRoDisplayBoardUsedMagnaticNumeral', label: 'RO display board uses magnetic numerals' },
+  { key: 'IsDisplayBoardHavingBrandedCommuSticker', label: 'Display board has branded communication sticker' },
+  { key: 'IsRspStandeeInVisibleGoodCondition', label: 'RSP standee visible and in good condition' },
+  { key: 'IsAllStandardSignagesVisibleatRo', label: 'All standard signages visible at RO' },
+  { key: 'AtCanopyPiller', label: 'Signage at canopy pillar' },
+  { key: 'AroundSalesBuilding', label: 'Signage around sales building' },
+  { key: 'IsTtdecantationSignageAvailable', label: 'TT decantation signage available' },
+  { key: 'AllLightsAroundRoInWorkingConditionBefore6Pm', label: 'All lights around RO working before 6 PM' },
+  { key: 'LightingAtRoAdequateAfter6Pm', label: 'Lighting at RO adequate after 6 PM' },
+  { key: 'IsDtiInWorkingCondtionAndDispensingAir', label: 'DTI working and dispensing air' },
+  { key: 'FsmProvidingFreeAirFacility', label: 'FSM providing free air facility' },
+  { key: 'IsHoardingAvailableAtRo', label: 'Hoarding available at RO' },
+  { key: 'IsHoardingInGoodCondition', label: 'Hoarding in good condition' },
+  { key: 'IsBoundryWallPaitingAsStandard', label: 'Boundary wall painting as per standard' },
+  { key: 'IsForecourtAreaHygieneAndCleanlinessAsStandard', label: 'Forecourt area hygiene and cleanliness as standard' },
+  { key: 'WorkingEdcmachineAvailableAtForecourt', label: 'Working EDC machine available at forecourt' },
+  { key: 'LubricantsDisplayedProminentlyAtDuisland', label: 'Lubricants displayed prominently at DU island' },
+  { key: 'StaticDisplayOnDuinGoodCondition', label: 'Static display on DU in good condition' },
+  { key: 'ManpowerAvailableForMarshalling', label: 'Manpower available for marshalling' },
+  { key: 'IsMarshallWearingReflectorVest', label: 'Marshall wearing reflector vest' },
+  { key: 'IsQuickLuneChangeIslandClean', label: 'Quick lube change island clean' },
+  { key: 'IsQlcmannedWithRefelectorVest', label: 'QLC manned with reflector vest' },
+  { key: 'IsVakrangeeKendraManned', label: 'Vakrangee Kendra manned' },
+  { key: 'IsFsmforNitrogenFacilityInReflectorVest', label: 'FSM at nitrogen facility in reflector vest' },
+  { key: 'IsRoHygineAndCleanlinessAsStandard', label: 'RO hygiene and cleanliness as standard' },
+  { key: 'CustomerServiceSequence', label: 'Customer service sequence followed' },
+];
+function trackerAnswersAll(status) { return MONTHLY_TRACKER_QUESTIONS.map(q => ({ question: q.label, status })); }
+function trackerAnswersWithFails(failIndices) {
+  const fails = new Set(failIndices);
+  return MONTHLY_TRACKER_QUESTIONS.map((q, i) => ({ question: q.label, status: fails.has(i) ? 'no' : 'yes' }));
+}
+function rangeIndices(from, to) { const a = []; for (let i = from; i <= to; i++) a.push(i); return a; }
+let monthlyTracker = [
+  { outletName: 'SG Highway', tsmName: 'Rajesh Kumar', month: 'August 2026', answers: trackerAnswersAll('yes') },
+  { outletName: 'Sarkhej Circle', tsmName: 'Rajesh Kumar', month: 'August 2026', answers: trackerAnswersWithFails(rangeIndices(16, 25).concat(rangeIndices(44, 53))) },
+  { outletName: 'Vastrapur', tsmName: 'Rajesh Kumar', month: 'August 2026', answers: trackerAnswersAll(null) },
+  { outletName: 'Koba Circle', tsmName: 'Sunil Mehta', month: 'August 2026', answers: trackerAnswersWithFails(rangeIndices(5, 37)) },
+  { outletName: 'Alkapuri', tsmName: 'Ravi Iyer', month: 'August 2026', answers: trackerAnswersAll('yes') },
+  { outletName: 'Vesu', tsmName: 'Bhavik Shah', month: 'August 2026', answers: trackerAnswersWithFails(rangeIndices(40, 50)) },
+];
+monthlyTracker.forEach(r => {
+  const yes = r.answers.filter(a => a.status === 'yes').length;
+  r.percentage = Math.round((yes / r.answers.length) * 100);
+  r.completed = r.percentage === 100;
+  r.openPoints = r.answers.filter(a => a.status !== 'yes').map(a => a.question);
+});
+
+/* ---------- Forecourt / HOS data (BCT_HOS_Dev, the separate tank-gauge automation system the
+   mobile app reads for stock levels, prices and deliveries; HOS_ProductList/TankList/Inventory/
+   PriceChange/DeliveryDatum). Read-only telemetry, keyed by outlet CMS code (SiteId). ---------- */
+let hosProducts = [
+  { siteId: 'CMS100000', productNo: 1, productName: 'MS', unit: 'LTR', type: 'Fuel', price: 104.75 },
+  { siteId: 'CMS100000', productNo: 2, productName: 'HSD', unit: 'LTR', type: 'Fuel', price: 91.20 },
+  { siteId: 'CMS100001', productNo: 1, productName: 'MS', unit: 'LTR', type: 'Fuel', price: 104.75 },
+  { siteId: 'CMS100001', productNo: 2, productName: 'HSD', unit: 'LTR', type: 'Fuel', price: 91.20 },
+  { siteId: 'CMS100009', productNo: 1, productName: 'MS', unit: 'LTR', type: 'Fuel', price: 105.10 },
+];
+let hosTanks = [
+  { siteId: 'CMS100000', tankNo: 1, productNo: 1, capacity: 16000, initialVolume: 8000 },
+  { siteId: 'CMS100000', tankNo: 2, productNo: 2, capacity: 20000, initialVolume: 9000 },
+  { siteId: 'CMS100001', tankNo: 1, productNo: 1, capacity: 16000, initialVolume: 6000 },
+  { siteId: 'CMS100009', tankNo: 1, productNo: 1, capacity: 12000, initialVolume: 2200 },
+];
+let hosInventory = [
+  { siteId: 'CMS100000', tankNo: 1, inventoryDate: '2026-08-25T09:00:00', volume: 13288.98, ullage: 2711.02, water: 3.89, densityAt15Deg: 0.7931 },
+  { siteId: 'CMS100000', tankNo: 2, inventoryDate: '2026-08-25T09:00:00', volume: 15420.30, ullage: 4579.70, water: 1.20, densityAt15Deg: 0.8395 },
+  { siteId: 'CMS100001', tankNo: 1, inventoryDate: '2026-08-25T09:00:00', volume: 5120.00, ullage: 10880.00, water: 2.10, densityAt15Deg: 0.7928 },
+  { siteId: 'CMS100009', tankNo: 1, inventoryDate: '2026-08-25T09:00:00', volume: 980.50, ullage: 11019.50, water: 0.80, densityAt15Deg: 0.7912 },
+];
+let hosPriceChanges = [
+  { siteId: 'CMS100000', dateTime: '2026-08-20T09:00:00', productNo: 1, newPrice: 104.75, status: 'Applied' },
+  { siteId: 'CMS100000', dateTime: '2026-08-20T09:00:00', productNo: 2, newPrice: 91.20, status: 'Applied' },
+  { siteId: 'CMS100001', dateTime: '2026-08-18T09:00:00', productNo: 1, newPrice: 104.75, status: 'Applied' },
+];
+let hosDeliveries = [
+  { siteId: 'CMS100000', deliveryId: 1, tankNo: 2, productCode: '5000', startTime: '2026-08-15T22:02:00', endTime: '2026-08-15T22:31:00', netVolume: 7729.93, status: 'Completed', invoiceNo: 'INV-4800GJ100-0001', transporterName: 'Gati Transport', truckNo: 'GJ09AB9874' },
+  { siteId: 'CMS100001', deliveryId: 2, tankNo: 1, productCode: '5000', startTime: '2026-08-16T06:10:00', endTime: '2026-08-16T06:40:00', netVolume: 6100.00, status: 'Completed', invoiceNo: 'INV-4837GJ107-0002', transporterName: 'VRL Transport', truckNo: 'GJ06CD4521' },
+];
+function outletsWithForecourtData() { return masterData.filter(m => m.type === 'Outlet' && hosTanks.some(t => t.siteId === m.cmsCode)); }
 
 let reports = [
   { id: 'RPT-501', name: 'Weekly Sales Summary', type: 'Sales', dateRange: '18 Aug - 24 Aug 2026', generatedBy: 'Priya Sharma', generatedAt: '2026-08-24T18:00:00', status: 'Ready', sizeKb: 482 },
@@ -674,8 +1007,8 @@ let notifIdSeq = 906;
    via logActivity(), seeded with a short history so the log isn't empty on first load. ---------- */
 let activityLog = [
   { id: 'ACT-1', user: 'Anita Verma', module: 'Users', action: 'Create', entity: 'Kalpesh Mehta (U-1011)', time: '2026-08-23T10:05:00' },
-  { id: 'ACT-2', user: 'Priya Sharma', module: 'Content / Data', action: 'Publish', entity: 'Festive Season Price List', time: '2026-08-22T11:31:00' },
-  { id: 'ACT-3', user: 'Anita Verma', module: 'Content / Data', action: 'Archive', entity: 'Koba Circle', time: '2026-06-11T09:01:00' },
+  { id: 'ACT-2', user: 'Priya Sharma', module: 'Master Data', action: 'Publish', entity: 'Festive Season Price List', time: '2026-08-22T11:31:00' },
+  { id: 'ACT-3', user: 'Anita Verma', module: 'Master Data', action: 'Archive', entity: 'Koba Circle', time: '2026-06-11T09:01:00' },
   { id: 'ACT-4', user: 'Sunil Mehta', module: 'Operations', action: 'Submit', entity: 'CRA audit for Koba Circle (local, unsynced)', time: '2026-08-22T16:40:00' },
   { id: 'ACT-5', user: 'Rajesh Kumar', module: 'Operations', action: 'Submit', entity: 'Monthly Tracker for SG Highway (August 2026)', time: '2026-08-20T09:00:00' },
 ];
@@ -690,12 +1023,13 @@ const NAV_GROUPS = [
     { route: 'dashboard', label: 'Dashboard', icon: 'home' },
   ] },
   { section: 'Operations', items: [
-    { route: 'content', label: 'Outlets & Master Data', icon: 'boxes' },
+    { route: 'content', label: 'Master Data', icon: 'boxes' },
     { route: 'tsm', label: 'TSM Management', icon: 'truck' },
     { route: 'operations', label: 'Field Operations', icon: 'shield', badgeFn: () => buildPendingTasks().length },
   ] },
   { section: 'Management', items: [
     { route: 'users', label: 'Users', icon: 'users' },
+    { route: 'roles', label: 'Roles & Access', icon: 'lock' },
   ] },
   { section: 'Finance', items: [
     { route: 'accounts', label: 'Accounts & Outstanding', icon: 'idCard' },
@@ -710,12 +1044,10 @@ const NAV_GROUPS = [
   ] },
 ];
 const NAV_ITEMS = NAV_GROUPS.flatMap(g => g.items);
-// Same sign-in identities as the mobile app (Employee ID + OTP, no password) so the two demo
-// accounts that already exist there also work here.
+// Same Employee ID + OTP sign-in flow as the mobile app. Only the Admin demo account is enabled
+// for now, add TSM/HOS back here when the admin panel needs to support signing in as them.
 const AUTH_USERS = [
   { id: '10088888', name: 'Anita Verma', role: 'Super Admin', designation: 'Platform Administrator', email: 'anita.verma@mountmerugroup.com' },
-  { id: '10012345', name: 'Rajesh Kumar', role: 'TSM', designation: 'Territory Sales Manager', email: 'rajesh.kumar@mountmerugroup.com' },
-  { id: '10099999', name: 'Priya Sharma', role: 'HOS', designation: 'Divisional Manager', email: 'priya.sharma@mountmerugroup.com' },
 ];
 let CURRENT_ADMIN = AUTH_USERS[0];
 
@@ -725,10 +1057,9 @@ const state = {
   route: 'dashboard',
   theme: 'light',
   sidebarCollapsed: false,
-  usersTab: 'directory',
-  rolesTab: 'Admin',
   users: { search: '', role: 'all', status: 'all', page: 1, pageSize: 7, loading: true, loaded: false },
-  content: { search: '', type: 'all', status: 'all', page: 1, pageSize: 7, loading: true, loaded: false },
+  roleFormId: null,
+  content: { tab: 'outlets', geoLevel: 'zone', search: '', type: 'all', status: 'all', page: 1, pageSize: 7, loading: true, loaded: false },
   operations: { tab: 'tasks', trackerFilter: 'all', page: 1, pageSize: 6, loading: true, loaded: false },
   reports: { type: 'all', page: 1, pageSize: 6, loading: true, loaded: false, generating: false, genError: false },
   activity: { module: 'all', search: '' },
@@ -772,7 +1103,7 @@ function closeModal() {
   const root = document.getElementById('modalRoot');
   const card = root.querySelector('.modal-card');
   if (card) card.classList.remove('open');
-  setTimeout(() => { root.innerHTML = ''; }, 180);
+  setTimeout(() => { if (root.querySelector('.modal-card') === card) root.innerHTML = ''; }, 180);
 }
 function openConfirm({ title, message, confirmLabel = 'Confirm', danger = false, iconName = 'alertTriangle', onConfirm }) {
   const root = document.getElementById('modalRoot');
@@ -790,12 +1121,39 @@ function openConfirm({ title, message, confirmLabel = 'Confirm', danger = false,
   requestAnimationFrame(() => root.querySelector('.modal-card').classList.add('open'));
   root.querySelector('#modalConfirmBtn').addEventListener('click', () => { closeModal(); onConfirm(); });
 }
+function openPhotoViewer({ label, sublabel, dataUri, meta }) {
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+    <div class="modal-card" style="max-width:440px;padding:0;overflow:hidden;">
+      <img src="${dataUri}" alt="${esc(label)}" style="width:100%;display:block;" />
+      <div style="padding:16px 18px;">
+        <h3 style="margin-bottom:2px;">${esc(label)}</h3>
+        <p style="margin-bottom:4px;">${esc(sublabel)}</p>
+        <p style="font-size:11.5px;color:var(--muted);margin-bottom:16px;">${esc(meta)}</p>
+        <button class="btn btn-outline btn-block" data-close-modal>Close</button>
+      </div>
+    </div>`;
+  document.getElementById('overlayBackdrop').classList.add('open');
+  requestAnimationFrame(() => root.querySelector('.modal-card').classList.add('open'));
+}
+function updateFormProgress(form) {
+  if (!form) return;
+  const bar = form.querySelector('#formProgressBar > span');
+  const label = form.querySelector('#formProgressLabel');
+  if (!bar || !label) return;
+  const fields = [...form.querySelectorAll('[name]')].filter(f => f.type !== 'hidden');
+  const filled = fields.filter(f => (f.value || '').toString().trim() !== '').length;
+  const pct = fields.length ? Math.round((filled / fields.length) * 100) : 100;
+  bar.style.width = pct + '%';
+  label.textContent = `${filled} of ${fields.length} fields completed`;
+}
 function openFormModal({ title, bodyHtml, submitLabel = 'Save', onSubmit }) {
   const root = document.getElementById('modalRoot');
   root.innerHTML = `
     <div class="modal-card form-modal">
       <div class="modal-header"><h3>${esc(title)}</h3><button class="icon-btn" data-close-modal aria-label="Close">${icons.close}</button></div>
       <form id="modalForm">
+        <div class="form-progress-wrap"><div class="progress-bar" id="formProgressBar"><span style="width:0%"></span></div><div class="form-progress-label" id="formProgressLabel"></div></div>
         <div class="modal-body">${bodyHtml}</div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" data-close-modal>Cancel</button>
@@ -805,7 +1163,11 @@ function openFormModal({ title, bodyHtml, submitLabel = 'Save', onSubmit }) {
     </div>`;
   document.getElementById('overlayBackdrop').classList.add('open');
   requestAnimationFrame(() => root.querySelector('.modal-card').classList.add('open'));
-  root.querySelector('#modalForm').addEventListener('submit', (e) => {
+  const form = root.querySelector('#modalForm');
+  form.addEventListener('input', () => updateFormProgress(form));
+  form.addEventListener('change', () => updateFormProgress(form));
+  updateFormProgress(form);
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     onSubmit(new FormData(e.target));
   });
@@ -817,7 +1179,7 @@ function closeDetailPanel() {
   const root = document.getElementById('detailPanelRoot');
   const panel = root.querySelector('.detail-panel');
   if (panel) panel.classList.remove('open');
-  setTimeout(() => { root.innerHTML = ''; }, 220);
+  setTimeout(() => { if (root.querySelector('.detail-panel') === panel) root.innerHTML = ''; }, 220);
 }
 function openDetailPanel({ title, subtitle = '', bodyHtml, footerHtml = `<button class="btn btn-outline" data-close-modal>Close</button>` }) {
   const root = document.getElementById('detailPanelRoot');
@@ -836,6 +1198,13 @@ function openDetailPanel({ title, subtitle = '', bodyHtml, footerHtml = `<button
 function dpSection(title, rows) {
   return `<div class="dp-section">${title ? `<div class="dp-section-title">${esc(title)}</div>` : ''}${rows.map(([k, v]) => `<div class="dp-row"><span class="dp-k">${esc(k)}</span><span class="dp-v">${v}</span></div>`).join('')}</div>`;
 }
+function autoLabel(key) { return key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()).trim(); }
+function fmtSectionVal(v) {
+  if (v === null || v === '' || v === undefined) return `<span style="color:var(--muted);">Not recorded</span>`;
+  if (typeof v === 'boolean') return v ? `<span class="badge badge-success">Yes</span>` : `<span class="badge badge-danger">No</span>`;
+  return esc(String(v));
+}
+function sectionRows(obj) { return Object.entries(obj).map(([k, v]) => [autoLabel(k), fmtSectionVal(v)]); }
 
 /* ==================== theme ==================== */
 function applyTheme(theme) {
@@ -945,7 +1314,7 @@ function notifMiniHtml(n) {
 
 /* ==================== page: dashboard ==================== */
 function renderDashboard() {
-  const totalTsms = users.filter(u => u.role === 'TSM').length;
+  const totalTsms = users.filter(u => u.role === roleNameBySystemKey('TSM')).length;
   const outlets = masterData.filter(m => m.type === 'Outlet');
   const totalOutstanding = outlets.reduce((sum, o) => sum + (o.accountBalance || 0), 0);
   const pendingTasks = buildPendingTasks();
@@ -1050,26 +1419,20 @@ function filteredUsers() {
     return true;
   });
 }
-const USERS_TABS = [
-  { key: 'directory', label: 'User Directory' },
-  { key: 'roles', label: 'Roles & Permissions' },
-];
 function renderUsersPage() {
   const s = state.users;
   return `
     <div class="page-header">
-      <div><h1>Users</h1><div class="sub">Manage TSM, HOS, RO and Admin accounts, and what each role is allowed to do.</div></div>
-      ${state.usersTab === 'directory' ? `<div class="ph-actions"><button class="btn btn-primary" data-action="add-user">${icons.plus}Add User</button></div>` : ''}
+      <div><h1>Users</h1><div class="sub">Nayara staff accounts (DM/DDM/TSM and admin-tier roles). Roles and permissions are managed on the Roles &amp; Access page.</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" data-action="add-user">${icons.plus}Add User</button></div>
     </div>
-    <div class="tabs">${USERS_TABS.map(t => `<button class="tab-btn ${state.usersTab === t.key ? 'active' : ''}" data-users-tab="${t.key}">${t.label}</button>`).join('')}</div>
-    ${state.usersTab === 'roles' ? renderRolesMatrix() : `
     <div class="table-card">
       <div class="table-toolbar">
         <div class="search-bar" style="max-width:280px;">${icons.search}<input type="text" id="userSearchInput" placeholder="Search name, email, ID" value="${esc(s.search)}" /></div>
         <div class="tt-filters">
           <select class="input" id="userRoleFilter">
             <option value="all">All roles</option>
-            ${['TSM', 'HOS', 'RO', 'Admin'].map(r => `<option value="${r}" ${s.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+            ${roles.map(r => `<option value="${esc(r.name)}" ${s.role === r.name ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}
           </select>
           <select class="input" id="userStatusFilter">
             <option value="all">All statuses</option>
@@ -1078,33 +1441,6 @@ function renderUsersPage() {
         </div>
       </div>
       <div id="usersTableWrap">${s.loading ? tableSkeleton(6) : renderUsersTableBody()}</div>
-    </div>`}`;
-}
-const PERMISSION_COLUMNS = ['View', 'Create', 'Edit', 'Delete', 'Approve'];
-const ROLE_PERMISSIONS = {
-  Admin: { Users: ['View', 'Create', 'Edit', 'Delete'], Outlets: ['View', 'Create', 'Edit', 'Delete'], 'Audit Forms': ['View', 'Edit', 'Approve'], 'Monthly Tracker': ['View', 'Edit', 'Approve'], Indents: ['View', 'Edit', 'Approve'], Reports: ['View'], Settings: ['View', 'Edit'] },
-  HOS: { Users: ['View'], Outlets: ['View', 'Edit'], 'Audit Forms': ['View', 'Approve'], 'Monthly Tracker': ['View', 'Approve'], Indents: ['View', 'Approve'], Reports: ['View'], Settings: [] },
-  TSM: { Users: [], Outlets: ['View'], 'Audit Forms': ['View', 'Create', 'Edit'], 'Monthly Tracker': ['View', 'Create', 'Edit'], Indents: ['View', 'Create'], Reports: ['View'], Settings: [] },
-  RO: { Users: [], Outlets: ['View'], 'Audit Forms': [], 'Monthly Tracker': [], Indents: ['View'], Reports: [], Settings: [] },
-};
-function renderRolesMatrix() {
-  const role = state.rolesTab || 'Admin';
-  const perms = ROLE_PERMISSIONS[role];
-  return `
-    <div class="table-card">
-      <div class="table-toolbar"><div class="chip-row">${Object.keys(ROLE_PERMISSIONS).map(r => `<button class="chip ${role === r ? 'active' : ''}" data-role-tab="${r}">${r}</button>`).join('')}</div></div>
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead><tr><th>Module</th>${PERMISSION_COLUMNS.map(c => `<th style="text-align:center;">${c}</th>`).join('')}</tr></thead>
-          <tbody>
-            ${Object.keys(perms).map(mod => `
-              <tr>
-                <td class="cell-primary">${esc(mod)}</td>
-                ${PERMISSION_COLUMNS.map(c => `<td style="text-align:center;">${perms[mod].includes(c) ? `<span style="color:var(--success);">${icons.check}</span>` : `<span style="color:var(--muted);">&mdash;</span>`}</td>`).join('')}
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
     </div>`;
 }
 function renderUsersTableBody() {
@@ -1120,7 +1456,7 @@ function renderUsersTableBody() {
             <tr>
               <td><div class="cell-with-avatar"><div class="row-avatar">${initials(u.name)}</div><div><div class="cell-primary">${esc(u.name)}</div><div class="cell-sub">${esc(u.email)}</div></div></div></td>
               <td>${esc(u.role)}</td>
-              <td>${esc(u.territory)}</td>
+              <td>${esc(userScopeLabel(u))}</td>
               <td><span class="badge ${statusBadgeClass(u.status)}"><span class="badge-dot"></span>${u.status}</span></td>
               <td>${u.lastActive === '-' ? '-' : fmtDateTime(u.lastActive)}</td>
               <td class="right">
@@ -1139,29 +1475,121 @@ function renderUsersTableBody() {
 }
 
 /* ==================== page: content / data management ==================== */
-function filteredContent() {
+const MASTER_TABS = [
+  { key: 'outlets', label: 'Retail Outlets' },
+  { key: 'geography', label: 'Geography' },
+  { key: 'branding', label: 'RO Branding & CVP' },
+  { key: 'products', label: 'Products & Schemes' },
+  { key: 'stockvar', label: 'Stock Variation Rules' },
+];
+const MASTER_ADD_BUTTON = {
+  outlets: () => `<button class="btn btn-primary" data-action="add-content">${icons.plus}Add Outlet</button>`,
+  branding: () => `<button class="btn btn-primary" data-action="add-branding">${icons.plus}Add Branding Record</button>`,
+  products: () => `<button class="btn btn-primary" data-action="add-content" data-type="Product">${icons.plus}Add Item</button>`,
+  stockvar: () => `<button class="btn btn-primary" data-action="add-stockvar">${icons.plus}Add Rule</button>`,
+  geography: () => '',
+};
+function renderContentPage() {
+  const tab = state.content.tab;
+  return `
+    <div class="page-header">
+      <div><h1>Master Data</h1><div class="sub">Geography, retail outlets, branding &amp; CVP, products &amp; schemes, and stock variation rules, the reference data the mobile app runs on.</div></div>
+      <div class="ph-actions">${MASTER_ADD_BUTTON[tab] ? MASTER_ADD_BUTTON[tab]() : ''}</div>
+    </div>
+    <div class="tabs">${MASTER_TABS.map(t => `<button class="tab-btn ${tab === t.key ? 'active' : ''}" data-mdtab="${t.key}">${t.label}</button>`).join('')}</div>
+    ${renderMasterTabBody()}`;
+}
+function renderMasterTabBody() {
+  const tab = state.content.tab;
+  if (tab === 'geography') return renderGeographyTab();
+  if (tab === 'branding') return renderBrandingTab();
+  if (tab === 'stockvar') return renderStockVarTab();
+  if (tab === 'products') return renderProductsTab();
+  return renderOutletsTab();
+}
+function renderContentTableWrapBody() {
+  const tab = state.content.tab;
+  if (tab === 'products') return renderProductsTableBody();
+  return renderOutletsTableBody();
+}
+
+/* ---- Retail Outlets tab ---- */
+function filteredOutlets() {
   const s = state.content;
-  return masterData.filter(m => {
+  return masterData.filter(m => m.type === 'Outlet').filter(m => {
+    if (s.status !== 'all' && m.status !== s.status) return false;
+    if (s.search && !(`${m.title} ${m.code} ${m.cmsCode || ''}`.toLowerCase().includes(s.search.toLowerCase()))) return false;
+    return true;
+  });
+}
+function renderOutletsTab() {
+  const s = state.content;
+  return `
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-bar" style="max-width:280px;">${icons.search}<input type="text" id="contentSearchInput" placeholder="Search RO name, code, CMS code" value="${esc(s.search)}" /></div>
+        <div class="tt-filters">
+          <select class="input" id="contentStatusFilter">
+            <option value="all">All statuses</option>
+            ${['Published', 'Draft', 'Archived'].map(v => `<option value="${v}" ${s.status === v ? 'selected' : ''}>${v}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div id="contentTableWrap">${s.loading ? tableSkeleton(6) : renderOutletsTableBody()}</div>
+    </div>`;
+}
+function renderOutletsTableBody() {
+  const rows = filteredOutlets();
+  if (!rows.length) return emptyState('boxes', 'No retail outlets found', 'Try a different search term or clear your filters.');
+  const { rows: pageRows, page, totalPages, total } = paginate(rows, state.content.page, state.content.pageSize);
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>RO Name</th><th>RO Code / CMS Code</th><th>Territory</th><th>TSM</th><th>Outlet type</th><th>Status</th><th class="right">Actions</th></tr></thead>
+        <tbody>
+          ${pageRows.map(m => `
+            <tr>
+              <td class="cell-primary">${esc(m.title)}</td>
+              <td>${esc(m.code)}<div class="cell-sub">${esc(m.cmsCode || '-')}</div></td>
+              <td>${esc(m.territoryId ? geoName('territory', m.territoryId) : '-')}</td>
+              <td>${esc(m.tsmName || '-')}</td>
+              <td>${esc(m.outletType || '-')}</td>
+              <td><span class="badge ${statusBadgeClass(m.status)}"><span class="badge-dot"></span>${m.status}</span></td>
+              <td class="right">
+                <div class="row-actions">
+                  <button class="icon-btn-sm" title="View" data-action="view-content" data-id="${m.id}">${icons.eye}</button>
+                  <button class="icon-btn-sm" title="Edit" data-action="edit-content" data-id="${m.id}">${icons.edit}</button>
+                  <button class="icon-btn-sm" title="${m.status === 'Archived' ? 'Publish' : 'Archive'}" data-action="toggle-content" data-id="${m.id}">${icons[m.status === 'Archived' ? 'checkCircle' : 'xCircle']}</button>
+                  <button class="icon-btn-sm danger" title="Delete" data-action="delete-content" data-id="${m.id}">${icons.trash}</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${paginationHtml('content', page, totalPages, total, pageRows.length)}`;
+}
+
+/* ---- Products & Schemes tab ---- */
+function filteredProducts() {
+  const s = state.content;
+  return masterData.filter(m => m.type !== 'Outlet').filter(m => {
     if (s.type !== 'all' && m.type !== s.type) return false;
     if (s.status !== 'all' && m.status !== s.status) return false;
     if (s.search && !(`${m.title} ${m.code}`.toLowerCase().includes(s.search.toLowerCase()))) return false;
     return true;
   });
 }
-function renderContentPage() {
+function renderProductsTab() {
   const s = state.content;
   return `
-    <div class="page-header">
-      <div><h1>Outlets &amp; Master Data</h1><div class="sub">Retail outlets, fuel products, price lists and schemes that power the field app.</div></div>
-      <div class="ph-actions"><button class="btn btn-primary" data-action="add-content">${icons.plus}Add Item</button></div>
-    </div>
     <div class="table-card">
       <div class="table-toolbar">
         <div class="search-bar" style="max-width:280px;">${icons.search}<input type="text" id="contentSearchInput" placeholder="Search title or code" value="${esc(s.search)}" /></div>
         <div class="tt-filters">
           <select class="input" id="contentTypeFilter">
             <option value="all">All types</option>
-            ${['Outlet', 'Product', 'Price List', 'Scheme'].map(t => `<option value="${t}" ${s.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+            ${['Product', 'Price List', 'Scheme'].map(t => `<option value="${t}" ${s.type === t ? 'selected' : ''}>${t}</option>`).join('')}
           </select>
           <select class="input" id="contentStatusFilter">
             <option value="all">All statuses</option>
@@ -1169,11 +1597,11 @@ function renderContentPage() {
           </select>
         </div>
       </div>
-      <div id="contentTableWrap">${s.loading ? tableSkeleton(6) : renderContentTableBody()}</div>
+      <div id="contentTableWrap">${s.loading ? tableSkeleton(6) : renderProductsTableBody()}</div>
     </div>`;
 }
-function renderContentTableBody() {
-  const rows = filteredContent();
+function renderProductsTableBody() {
+  const rows = filteredProducts();
   if (!rows.length) return emptyState('boxes', 'No data items found', 'Try a different search term or clear your filters.');
   const { rows: pageRows, page, totalPages, total } = paginate(rows, state.content.page, state.content.pageSize);
   return `
@@ -1204,9 +1632,281 @@ function renderContentTableBody() {
     ${paginationHtml('content', page, totalPages, total, pageRows.length)}`;
 }
 
+/* ---- Geography tab (Zone > State > Division > District > Territory, one generic CRUD) ---- */
+function renderGeographyTab() {
+  const level = state.content.geoLevel || 'zone';
+  const levelInfo = GEO_LEVELS.find(l => l.key === level);
+  const parentInfo = levelInfo.parentKey ? GEO_LEVELS.find(l => l.key === levelInfo.parentKey) : null;
+  const rows = levelInfo.list();
+  return `
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="chip-row">${GEO_LEVELS.map(l => `<button class="chip ${level === l.key ? 'active' : ''}" data-geo-level="${l.key}">${l.plural}</button>`).join('')}</div>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto;" data-action="add-geo" data-level="${level}">${icons.plus}Add ${levelInfo.label}</button>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Code</th>${parentInfo ? `<th>${parentInfo.label}</th>` : ''}<th>Status</th><th class="right">Actions</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td class="cell-primary">${esc(r.name)}</td>
+                <td>${esc(r.code)}</td>
+                ${parentInfo ? `<td>${esc(geoName(parentInfo.key, r[levelInfo.parentField]))}</td>` : ''}
+                <td><span class="badge ${r.isActive ? 'badge-success' : 'badge-muted'}">${r.isActive ? 'Active' : 'Inactive'}</span></td>
+                <td class="right">
+                  <div class="row-actions">
+                    <button class="icon-btn-sm" title="Edit" data-action="edit-geo" data-level="${level}" data-id="${r.id}">${icons.edit}</button>
+                    <button class="icon-btn-sm danger" title="Delete" data-action="delete-geo" data-level="${level}" data-id="${r.id}">${icons.trash}</button>
+                  </div>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+function geoFormBody(level, r) {
+  const levelInfo = GEO_LEVELS.find(l => l.key === level);
+  const parentInfo = levelInfo.parentKey ? GEO_LEVELS.find(l => l.key === levelInfo.parentKey) : null;
+  return `
+    <div class="form-grid">
+      <div class="field"><label>Name</label><input class="input" name="name" value="${r ? esc(r.name) : ''}" required /></div>
+      <div class="field"><label>Code</label><input class="input" name="code" value="${r ? esc(r.code) : ''}" required /></div>
+      ${parentInfo ? `<div class="field full"><label>${parentInfo.label}</label><select class="input" name="parentId">${parentInfo.list().filter(x => x.isActive).map(x => `<option value="${x.id}" ${r && r[levelInfo.parentField] === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>` : ''}
+      <div class="field full"><label class="checkbox-row" style="margin-top:6px;"><input type="checkbox" name="isActive" ${!r || r.isActive ? 'checked' : ''} /> Active</label></div>
+    </div>`;
+}
+function openGeoForm(level, r) {
+  const levelInfo = GEO_LEVELS.find(l => l.key === level);
+  openFormModal({
+    title: r ? `Edit ${levelInfo.label}` : `Add ${levelInfo.label}`, submitLabel: r ? 'Save changes' : 'Add',
+    bodyHtml: geoFormBody(level, r),
+    onSubmit: (fd) => {
+      const data = { name: fd.get('name'), code: fd.get('code'), isActive: fd.get('isActive') === 'on' };
+      if (levelInfo.parentField) data[levelInfo.parentField] = Number(fd.get('parentId'));
+      if (r) { Object.assign(r, data); logActivity('Master Data', 'Update', `${levelInfo.label}: ${data.name}`); showToast('success', `${levelInfo.label} updated.`); }
+      else { const newId = geoIdSeq[level]++; levelInfo.list().push({ id: newId, ...data }); logActivity('Master Data', 'Create', `${levelInfo.label}: ${data.name}`); showToast('success', `${levelInfo.label} added.`); }
+      closeModal(); if (state.route === 'content') renderApp();
+    }
+  });
+}
+function geoHasChildren(level, id) {
+  const idx = GEO_LEVELS.findIndex(l => l.key === level);
+  const child = GEO_LEVELS[idx + 1];
+  return child ? child.list().some(x => x[child.parentField] === id) : false;
+}
+
+/* ---- RO Branding & CVP tab ---- */
+function renderBrandingTab() {
+  const rows = roBranding;
+  if (!rows.length) return `<div class="table-card">${emptyState('shield', 'No branding records', 'Add a branding & CVP record for a retail outlet.')}</div>`;
+  return `
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>CMS Code</th><th>Outlet</th><th>RO Status</th><th>Branding</th><th>CVP flags</th><th>Canopy</th><th class="right">Actions</th></tr></thead>
+          <tbody>
+            ${rows.map(b => {
+              const outlet = masterData.find(m => m.cmsCode === b.cmsCode);
+              const flags = [['CSC', b.cvpCsc], ['QLC', b.cvpQlc], ['Marshalling', b.cvpMarshalling], ['Nitrogen', b.cvpNitrogen]].filter(f => f[1]).map(f => f[0]);
+              return `
+              <tr>
+                <td class="cell-primary">${esc(b.cmsCode)}</td>
+                <td>${outlet ? esc(outlet.title) : '-'}</td>
+                <td><span class="badge ${b.roStatus === 'Active' ? 'badge-success' : 'badge-muted'}">${esc(b.roStatus)}</span></td>
+                <td>${esc(b.roBranding)}</td>
+                <td>${flags.length ? flags.map(f => `<span class="badge badge-info" style="margin:2px 3px 2px 0;">${f}</span>`).join('') : `<span class="badge badge-muted">None</span>`}</td>
+                <td>${b.canopy ? `<span class="badge badge-success">Yes</span>` : `<span class="badge badge-muted">No</span>`}</td>
+                <td class="right">
+                  <div class="row-actions">
+                    <button class="icon-btn-sm" title="Edit" data-action="edit-branding" data-id="${b.id}">${icons.edit}</button>
+                    <button class="icon-btn-sm danger" title="Delete" data-action="delete-branding" data-id="${b.id}">${icons.trash}</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+function brandingFormBody(b) {
+  const outlets = masterData.filter(m => m.type === 'Outlet' && m.cmsCode);
+  return `
+    <div class="form-grid">
+      <div class="field full"><label>Retail outlet (by CMS code)</label>
+        <select class="input" name="cmsCode">${outlets.map(o => `<option value="${esc(o.cmsCode)}" ${b && b.cmsCode === o.cmsCode ? 'selected' : ''}>${esc(o.title)} - ${esc(o.cmsCode)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>RO status</label>
+        <select class="input" name="roStatus">${['Active', 'Inactive'].map(v => `<option ${b && b.roStatus === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Branding</label>
+        <select class="input" name="roBranding">${['Nayara Energy - New', 'Nayara Energy - Refreshed', 'Legacy Branding'].map(v => `<option ${b && b.roBranding === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+      </div>
+      <div class="field full">
+        <label>CVP facilities</label>
+        <div class="checkbox-group">
+          <label class="checkbox-row"><input type="checkbox" name="cvpCsc" ${b && b.cvpCsc ? 'checked' : ''} /> CSC</label>
+          <label class="checkbox-row"><input type="checkbox" name="cvpQlc" ${b && b.cvpQlc ? 'checked' : ''} /> QLC</label>
+          <label class="checkbox-row"><input type="checkbox" name="cvpMarshalling" ${b && b.cvpMarshalling ? 'checked' : ''} /> Marshalling</label>
+          <label class="checkbox-row"><input type="checkbox" name="cvpNitrogen" ${b && b.cvpNitrogen ? 'checked' : ''} /> Nitrogen</label>
+          <label class="checkbox-row"><input type="checkbox" name="canopy" ${b && b.canopy ? 'checked' : ''} /> Canopy</label>
+        </div>
+      </div>
+    </div>`;
+}
+function openBrandingForm(b) {
+  openFormModal({
+    title: b ? 'Edit Branding Record' : 'Add Branding Record', submitLabel: b ? 'Save changes' : 'Add Record', bodyHtml: brandingFormBody(b),
+    onSubmit: (fd) => {
+      const data = { cmsCode: fd.get('cmsCode'), roStatus: fd.get('roStatus'), roBranding: fd.get('roBranding'), cvpCsc: fd.get('cvpCsc') === 'on', cvpQlc: fd.get('cvpQlc') === 'on', cvpMarshalling: fd.get('cvpMarshalling') === 'on', cvpNitrogen: fd.get('cvpNitrogen') === 'on', canopy: fd.get('canopy') === 'on' };
+      if (b) { Object.assign(b, data); logActivity('Master Data', 'Update', `Branding: ${data.cmsCode}`); showToast('success', 'Branding record updated.'); }
+      else { roBranding.push({ id: brandingIdSeq++, ...data }); logActivity('Master Data', 'Create', `Branding: ${data.cmsCode}`); showToast('success', 'Branding record added.'); }
+      closeModal(); if (state.route === 'content') renderApp();
+    }
+  });
+}
+
+/* ---- Stock Variation Rules tab ---- */
+function renderStockVarTab() {
+  const rows = stockVariationRules;
+  return `
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Stock type</th><th>Meter %</th><th>Description</th><th>Status</th><th class="right">Actions</th></tr></thead>
+          <tbody>
+            ${rows.map(v => `
+              <tr>
+                <td class="cell-primary">${esc(v.stockType)}</td>
+                <td>${esc(v.meterPercent)}</td>
+                <td>${esc(v.description)}</td>
+                <td><span class="badge ${v.isActive ? 'badge-success' : 'badge-muted'}">${v.isActive ? 'Active' : 'Inactive'}</span></td>
+                <td class="right">
+                  <div class="row-actions">
+                    <button class="icon-btn-sm" title="Edit" data-action="edit-stockvar" data-id="${v.id}">${icons.edit}</button>
+                    <button class="icon-btn-sm danger" title="Delete" data-action="delete-stockvar" data-id="${v.id}">${icons.trash}</button>
+                  </div>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+function stockVarFormBody(v) {
+  return `
+    <div class="form-grid">
+      <div class="field"><label>Stock type</label>
+        <select class="input" name="stockType">${['MS', 'HSD', 'CNG', 'LPG'].map(t => `<option ${v && v.stockType === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Meter % band</label><input class="input" name="meterPercent" value="${v ? esc(v.meterPercent) : ''}" placeholder="e.g. 0.0-0.5%" required /></div>
+      <div class="field full"><label>Description</label><input class="input" name="description" value="${v ? esc(v.description) : ''}" required /></div>
+      <div class="field full"><label class="checkbox-row" style="margin-top:6px;"><input type="checkbox" name="isActive" ${!v || v.isActive ? 'checked' : ''} /> Active</label></div>
+    </div>`;
+}
+function openStockVarForm(v) {
+  openFormModal({
+    title: v ? 'Edit Stock Variation Rule' : 'Add Stock Variation Rule', submitLabel: v ? 'Save changes' : 'Add Rule', bodyHtml: stockVarFormBody(v),
+    onSubmit: (fd) => {
+      const data = { stockType: fd.get('stockType'), meterPercent: fd.get('meterPercent'), description: fd.get('description'), isActive: fd.get('isActive') === 'on' };
+      if (v) { Object.assign(v, data); logActivity('Master Data', 'Update', `Stock variation rule: ${data.stockType} ${data.meterPercent}`); showToast('success', 'Rule updated.'); }
+      else { stockVariationRules.push({ id: stockVarIdSeq++, ...data }); logActivity('Master Data', 'Create', `Stock variation rule: ${data.stockType} ${data.meterPercent}`); showToast('success', 'Rule added.'); }
+      closeModal(); if (state.route === 'content') renderApp();
+    }
+  });
+}
+
+/* ==================== page: roles & access (dynamic Role master) ==================== */
+function renderRolesPage() {
+  if (state.roleFormId !== null) return renderRoleFormPage();
+  return `
+    <div class="page-header">
+      <div><h1>Roles &amp; Access</h1><div class="sub">Define roles and what each one can do. Every role picker in this admin panel reads from this list.</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" data-action="add-role">${icons.plus}Add Role</button></div>
+    </div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Role</th><th>Users assigned</th><th>Modules with access</th><th class="right">Actions</th></tr></thead>
+          <tbody>
+            ${roles.map(r => {
+              const userCount = users.filter(u => u.role === r.name).length;
+              const modsWithAccess = Object.keys(r.permissions || {}).filter(m => { const p = r.permissions[m]; return p.create || p.update !== 'None' || p.assignReassign || p.review; });
+              return `
+              <tr>
+                <td class="cell-primary">${esc(r.name)}</td>
+                <td>${userCount}</td>
+                <td>${modsWithAccess.length ? modsWithAccess.map(m => `<span class="badge badge-info" style="margin:2px 4px 2px 0;">${esc(m)}</span>`).join('') : `<span class="badge badge-muted">No access</span>`}</td>
+                <td class="right">
+                  <div class="row-actions">
+                    <button class="icon-btn-sm" title="View" data-action="view-role" data-id="${r.id}">${icons.eye}</button>
+                    <button class="icon-btn-sm" title="Edit" data-action="edit-role" data-id="${r.id}">${icons.edit}</button>
+                    <button class="icon-btn-sm danger" title="Delete" data-action="delete-role" data-id="${r.id}">${icons.trash}</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+function renderRoleFormPage() {
+  const isNew = state.roleFormId === 'new';
+  const r = isNew ? null : roles.find(x => x.id === state.roleFormId);
+  return `
+    <div class="page-header">
+      <div><h1>${isNew ? 'Add Role' : 'Edit Role'}</h1><div class="sub">Define what this role can do. It becomes selectable everywhere a role is assigned.</div></div>
+      <div class="ph-actions"><button class="btn btn-outline" data-action="cancel-role-form">${icons.chevLeft}Back to roles</button></div>
+    </div>
+    <form id="roleForm">
+      <div class="form-progress-wrap" style="padding:0 0 16px;"><div class="progress-bar" id="formProgressBar"><span style="width:0%"></span></div><div class="form-progress-label" id="formProgressLabel"></div></div>
+      <div class="card" style="max-width:420px;margin-bottom:20px;">
+        <div class="field" style="margin-bottom:0;"><label>Role name</label><input class="input" name="name" value="${r ? esc(r.name) : ''}" required /></div>
+      </div>
+      <div class="table-card">
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Module</th><th>Create</th><th>Update</th><th>Assign / Reassign</th><th>Review</th></tr></thead>
+            <tbody>
+              ${PERMISSION_MODULES.map(mod => {
+                const p = (r && r.permissions[mod]) || emptyPerm();
+                return `
+                <tr>
+                  <td class="cell-primary">${esc(mod)}</td>
+                  <td><label class="checkbox-row"><input type="checkbox" name="create_${mod}" ${p.create ? 'checked' : ''} /></label></td>
+                  <td><select class="input" name="update_${mod}" style="min-width:130px;">${UPDATE_SCOPES.map(s => `<option ${p.update === s ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
+                  <td><label class="checkbox-row"><input type="checkbox" name="assign_${mod}" ${p.assignReassign ? 'checked' : ''} /></label></td>
+                  <td><label class="checkbox-row"><input type="checkbox" name="review_${mod}" ${p.review ? 'checked' : ''} /></label></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 18px;border-top:1px solid var(--divider);">
+          <button type="button" class="btn btn-outline" data-action="cancel-role-form">Cancel</button>
+          <button type="submit" class="btn btn-primary">${isNew ? 'Add Role' : 'Save changes'}</button>
+        </div>
+      </div>
+    </form>`;
+}
+function submitRoleForm(fd) {
+  const r = state.roleFormId === 'new' ? null : roles.find(x => x.id === state.roleFormId);
+  const permissions = {};
+  PERMISSION_MODULES.forEach(mod => {
+    permissions[mod] = perm(fd.get(`create_${mod}`) === 'on', fd.get(`update_${mod}`), fd.get(`assign_${mod}`) === 'on', fd.get(`review_${mod}`) === 'on');
+  });
+  const name = fd.get('name');
+  if (r) { const oldName = r.name; r.name = name; r.permissions = permissions; if (oldName !== name) users.forEach(u => { if (u.role === oldName) u.role = name; }); logActivity('Users', 'Update role', name); showToast('success', 'Role updated.'); }
+  else { roles.push({ id: `ROLE-${roleIdSeq++}`, name, permissions }); logActivity('Users', 'Create role', name); showToast('success', 'Role added.'); }
+  state.roleFormId = null; renderApp();
+}
+
 /* ==================== page: TSM management ==================== */
 function renderTsmPage() {
-  const tsms = users.filter(u => u.role === 'TSM');
+  const tsms = users.filter(u => u.role === roleNameBySystemKey('TSM'));
   return `
     <div class="page-header">
       <div><h1>TSM Management</h1><div class="sub">Territory Sales Managers, their assigned outlets and field-activity summary.</div></div>
@@ -1224,7 +1924,7 @@ function renderTsmPage() {
               return `
               <tr>
                 <td><div class="cell-with-avatar"><div class="row-avatar">${initials(t.name)}</div><div><div class="cell-primary">${esc(t.name)}</div><div class="cell-sub">${esc(t.email)}</div></div></div></td>
-                <td>${esc(t.territory)}</td>
+                <td>${esc(userScopeLabel(t))}</td>
                 <td>${assigned.length}</td>
                 <td>${tAudits.length}</td>
                 <td>${tTracker.length}</td>
@@ -1278,7 +1978,7 @@ function renderAccountsPage() {
 }
 
 /* ==================== page: activity / audit log ==================== */
-const ACTIVITY_MODULES = ['Users', 'Content / Data', 'Operations', 'Reports', 'Notifications', 'Administration'];
+const ACTIVITY_MODULES = ['Users', 'Master Data', 'Operations', 'Reports', 'Notifications', 'Administration'];
 function renderActivityPage() {
   const f = state.activity;
   const rows = activityLog.filter(a => (f.module === 'all' || a.module === f.module) && (!f.search || `${a.user} ${a.entity} ${a.action}`.toLowerCase().includes(f.search.toLowerCase())));
@@ -1324,15 +2024,16 @@ const OPS_TABS = [
   { key: 'indents', label: 'Indents & Inventory', icon: 'boxes' },
   { key: 'audits', label: 'Audit Forms (CRA)', icon: 'shield' },
   { key: 'tracker', label: 'Monthly Tracker', icon: 'checkCircle' },
+  { key: 'forecourt', label: 'Forecourt Data (HOS)', icon: 'gauge' },
 ];
 function renderOperationsPage() {
   const s = state.operations;
   return `
     <div class="page-header">
-      <div><h1>Operations</h1><div class="sub">Field-generated data from the mobile app: pending work, indents, retail outlet audits and the monthly compliance tracker.</div></div>
+      <div><h1>Operations</h1><div class="sub">Field-generated data from the mobile app: pending work, indents, retail outlet audits, the monthly compliance tracker, and forecourt telemetry.</div></div>
     </div>
     <div class="tabs">${OPS_TABS.map(t => `<button class="tab-btn ${s.tab === t.key ? 'active' : ''}" data-optab="${t.key}">${t.label}</button>`).join('')}</div>
-    <div class="table-card" id="opsTableWrap">${s.loading ? tableSkeleton(6) : renderOpsTabBody()}</div>`;
+    ${s.tab === 'forecourt' ? renderForecourtTab() : `<div class="table-card" id="opsTableWrap">${s.loading ? tableSkeleton(6) : renderOpsTabBody()}</div>`}`;
 }
 function renderOpsTabBody() {
   if (state.operations.tab === 'audits') return renderAuditsTabBody();
@@ -1402,21 +2103,94 @@ function renderIndentsTabBody() {
     </div>
     ${paginationHtml('operations', page, totalPages, total, pageRows.length)}`;
 }
+function renderForecourtTab() {
+  const outlets = outletsWithForecourtData();
+  if (!outlets.length) return `<div class="table-card">${emptyState('gauge', 'No forecourt data', 'No outlets have HOS tank-gauge telemetry linked yet.')}</div>`;
+  const siteId = state.operations.forecourtOutlet || outlets[0].cmsCode;
+  const outlet = outlets.find(o => o.cmsCode === siteId) || outlets[0];
+  const tanks = hosTanks.filter(t => t.siteId === siteId);
+  const products = hosProducts.filter(p => p.siteId === siteId);
+  const deliveries = hosDeliveries.filter(d => d.siteId === siteId);
+  const priceChanges = hosPriceChanges.filter(p => p.siteId === siteId);
+  const productName = (no) => { const p = products.find(x => x.productNo === no); return p ? p.productName : `Product ${no}`; };
+  const latestInventory = (tankNo) => hosInventory.filter(i => i.siteId === siteId && i.tankNo === tankNo).sort((a, b) => b.inventoryDate.localeCompare(a.inventoryDate))[0];
+  return `
+    <div class="table-card" style="margin-bottom:16px;">
+      <div class="table-toolbar">
+        <div class="field" style="margin:0;min-width:260px;">
+          <label>Outlet (by CMS code)</label>
+          <select class="input" id="forecourtOutletSelect">${outlets.map(o => `<option value="${o.cmsCode}" ${siteId === o.cmsCode ? 'selected' : ''}>${esc(o.title)} - ${esc(o.cmsCode)}</option>`).join('')}</select>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title" style="margin-top:0;">Tanks &amp; live stock (HOS_TankList / HOS_Inventory)</div>
+      ${tanks.map(t => {
+        const inv = latestInventory(t.tankNo);
+        const pct = inv ? Math.round((inv.volume / t.capacity) * 100) : null;
+        const cls = pct === null ? '' : pct < 20 ? 'danger' : pct < 40 ? '' : 'success';
+        return `<div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px;">
+            <span>Tank ${t.tankNo} - ${esc(productName(t.productNo))}</span>
+            <span style="color:var(--text-secondary);font-weight:600;">${inv ? `${inv.volume.toLocaleString('en-IN')} / ${t.capacity.toLocaleString('en-IN')} L` : 'No reading'}</span>
+          </div>
+          ${pct !== null ? `<div class="progress-bar ${cls}"><span style="width:${pct}%"></span></div><div style="font-size:11px;color:var(--muted);margin-top:3px;">${pct}% full &middot; water ${inv.water}cm &middot; density@15&deg; ${inv.densityAt15Deg} &middot; as of ${fmtDateTime(inv.inventoryDate)}</div>` : ''}
+        </div>`;
+      }).join('') || `<p style="font-size:13px;color:var(--text-secondary);">No tanks configured for this outlet.</p>`}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Products &amp; price (HOS_ProductList)</div>
+        <div class="table-scroll">
+          <table class="data-table"><thead><tr><th>Product</th><th>Unit</th><th class="right">Price</th></tr></thead>
+          <tbody>${products.map(p => `<tr><td class="cell-primary">${esc(p.productName)}</td><td>${esc(p.unit)}</td><td class="right">₹${p.price.toFixed(2)}</td></tr>`).join('') || `<tr><td colspan="3" style="color:var(--muted);">No products configured.</td></tr>`}</tbody></table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Recent price changes (HOS_PriceChange)</div>
+        <div class="table-scroll">
+          <table class="data-table"><thead><tr><th>Product</th><th class="right">New price</th><th>Status</th><th>When</th></tr></thead>
+          <tbody>${priceChanges.map(p => `<tr><td class="cell-primary">${esc(productName(p.productNo))}</td><td class="right">₹${p.newPrice.toFixed(2)}</td><td><span class="badge badge-success">${esc(p.status)}</span></td><td>${fmtDateTime(p.dateTime)}</td></tr>`).join('') || `<tr><td colspan="4" style="color:var(--muted);">No recent price changes.</td></tr>`}</tbody></table>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title" style="margin-top:0;">Recent deliveries (HOS_DeliveryDatum)</div>
+      <div class="table-scroll">
+        <table class="data-table"><thead><tr><th>Delivery</th><th>Tank</th><th class="right">Net volume</th><th>Transporter</th><th>Truck no.</th><th>Invoice</th><th>Status</th></tr></thead>
+        <tbody>${deliveries.map(d => `<tr><td class="cell-primary">${fmtDateTime(d.startTime)}</td><td>Tank ${d.tankNo}</td><td class="right">${d.netVolume.toLocaleString('en-IN')} L</td><td>${esc(d.transporterName)}</td><td>${esc(d.truckNo)}</td><td>${esc(d.invoiceNo)}</td><td><span class="badge badge-success">${esc(d.status)}</span></td></tr>`).join('') || `<tr><td colspan="7" style="color:var(--muted);">No deliveries recorded.</td></tr>`}</tbody></table>
+      </div>
+    </div>`;
+}
+function auditChecklist(a) {
+  const base = [
+    { label: 'RO details captured', done: true },
+    { label: 'Photo: Sales Room + Board', done: a.photosCaptured >= 1 },
+    { label: 'Photo: RO from Opposite Side', done: a.photosCaptured >= 2 },
+    { label: 'Attendance logged', done: a.attendeeCount > 0 },
+  ];
+  return base.concat(CRA_FORM_SECTIONS.map(s => ({ label: s.label, done: sectionHasData((a.sections || {})[s.key]) })));
+}
+function auditCompletionPct(a) {
+  const items = auditChecklist(a);
+  return Math.round((items.filter(i => i.done).length / items.length) * 100);
+}
 function renderAuditsTabBody() {
   if (!auditForms.length) return emptyState('shield', 'No audit forms found', 'No RO Audit Forms have been submitted yet.');
   const { rows: pageRows, page, totalPages, total } = paginate(auditForms, state.operations.page, state.operations.pageSize);
   return `
     <div class="table-scroll">
       <table class="data-table">
-        <thead><tr><th>Outlet</th><th>Ref no.</th><th>TSM</th><th>Visit date</th><th>Photos / Attendees</th><th>Status</th><th class="right">Actions</th></tr></thead>
+        <thead><tr><th>Outlet</th><th>Ref no.</th><th>TSM</th><th>Visit date</th><th>Photos / Attendees</th><th>Form completion</th><th>Status</th><th class="right">Actions</th></tr></thead>
         <tbody>
-          ${pageRows.map(a => `
+          ${pageRows.map(a => { const pct = auditCompletionPct(a); return `
             <tr>
               <td class="cell-primary">${esc(a.outletName)}</td>
               <td>${esc(a.refNo)}</td>
               <td>${esc(a.tsmName)}</td>
               <td>${fmtDate(a.visitDate)}</td>
               <td>${a.photosCaptured}/2 &middot; ${a.attendeeCount} attendee${a.attendeeCount === 1 ? '' : 's'}</td>
+              <td><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar ${pct === 100 ? 'success' : pct === 0 ? 'danger' : ''}"><span style="width:${pct}%"></span></div><span style="font-size:11.5px;color:var(--text-secondary);">${pct}%</span></div></td>
               <td><span class="badge ${statusBadgeClass(a.status)}"><span class="badge-dot"></span>${esc(a.status)}</span></td>
               <td class="right">
                 <div class="row-actions">
@@ -1424,7 +2198,7 @@ function renderAuditsTabBody() {
                   <button class="icon-btn-sm danger" title="Delete" data-action="delete-audit" data-id="${a.id}">${icons.trash}</button>
                 </div>
               </td>
-            </tr>`).join('')}
+            </tr>`; }).join('')}
         </tbody>
       </table>
     </div>
@@ -1699,9 +2473,8 @@ function renderIdStep() {
         <button class="btn btn-primary btn-block" type="submit" id="loginSubmitBtn" ${a.loading ? 'disabled' : ''}>${a.loading ? `<span class="spinner sm" style="border-color:rgba(255,255,255,0.4);border-top-color:#fff;"></span> Sending OTP...` : 'Send OTP'}</button>
       </form>
       <div class="demo-hint">
-        <strong>Demo accounts</strong><br/>
-        Admin: 10088888<br/>
-        TSM: 10012345 &middot; Divisional Manager (HOS): 10099999
+        <strong>Demo account</strong><br/>
+        Admin: 10088888
       </div>
       <div class="login-footer">Mount Meru Admin &middot; Version 1.0.0</div>
     </div>`;
@@ -1750,15 +2523,17 @@ function performLogout() {
 }
 
 /* ==================== router / render ==================== */
-const PAGE_RENDERERS = { dashboard: renderDashboard, users: renderUsersPage, tsm: renderTsmPage, content: renderContentPage, operations: renderOperationsPage, accounts: renderAccountsPage, reports: renderReportsPage, activity: renderActivityPage, notifications: renderNotificationsPage, settings: renderSettingsPage };
+const PAGE_RENDERERS = { dashboard: renderDashboard, users: renderUsersPage, roles: renderRolesPage, tsm: renderTsmPage, content: renderContentPage, operations: renderOperationsPage, accounts: renderAccountsPage, reports: renderReportsPage, activity: renderActivityPage, notifications: renderNotificationsPage, settings: renderSettingsPage };
 function renderApp() {
   renderSidebar();
   renderTopbar();
   document.getElementById('content').innerHTML = PAGE_RENDERERS[state.route]();
+  updateFormProgress(document.getElementById('roleForm'));
 }
 function navigate(route) {
   if (!PAGE_RENDERERS[route]) route = 'dashboard';
   state.route = route;
+  state.roleFormId = null;
   closeAllDropdowns();
   closeDrawer();
   loadRouteData(route);
@@ -1785,28 +2560,97 @@ function closeDrawer() { document.getElementById('drawer').classList.remove('ope
 
 /* ==================== add/edit form builders ==================== */
 function userFormBody(u) {
+  const scopeLevel = u ? (u.territoryId ? 'territory' : u.districtId ? 'district' : u.divisionId ? 'division' : u.stateId ? 'state' : 'all') : 'all';
   return `
     <div class="form-grid">
       <div class="field"><label>Full name</label><input class="input" name="name" value="${u ? esc(u.name) : ''}" required /></div>
+      <div class="field"><label>Employee code (SAP)</label><input class="input" name="sapcode" value="${u ? esc(u.sapcode || '') : ''}" placeholder="e.g. EMP10234" required /></div>
       <div class="field"><label>Email</label><input class="input" type="email" name="email" value="${u ? esc(u.email) : ''}" required /></div>
       <div class="field"><label>Phone</label><input class="input" name="phone" value="${u ? esc(u.phone) : ''}" required /></div>
       <div class="field"><label>Role</label>
-        <select class="input" name="role">${['TSM', 'HOS', 'RO', 'Admin'].map(r => `<option ${u && u.role === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
+        <select class="input" name="role">${roles.map(r => `<option ${u && u.role === r.name ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select>
       </div>
-      <div class="field full"><label>Territory</label>
-        <select class="input" name="territory">${['All Territories', ...TERRITORIES].map(t => `<option ${u && u.territory === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      <div class="field"><label>Scope level</label>
+        <select class="input" name="scopeLevel" id="userScopeLevel">
+          ${['all', 'state', 'division', 'district', 'territory'].map(lvl => `<option value="${lvl}" ${scopeLevel === lvl ? 'selected' : ''}>${lvl === 'all' ? 'All territories' : lvl.charAt(0).toUpperCase() + lvl.slice(1)}</option>`).join('')}
+        </select>
       </div>
+      <div id="userScopeValueWrap" style="display:contents;">${userScopeValueField(scopeLevel, u)}</div>
     </div>`;
 }
-function contentFormBody(m) {
+function userScopeValueField(level, u) {
+  if (level === 'all') return '';
+  const levelInfo = GEO_LEVELS.find(l => l.key === level);
+  const currentId = u ? u[level + 'Id'] : null;
+  return `<div class="field full"><label>${levelInfo.label}</label><select class="input" name="scopeValue">${levelInfo.list().filter(x => x.isActive).map(x => `<option value="${x.id}" ${currentId === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>`;
+}
+function ownerOptions(current) {
+  const names = [...new Set(users.map(u => u.name))];
+  if (current && !names.includes(current)) names.unshift(current);
+  return names.map(n => `<option ${n === current ? 'selected' : ''}>${esc(n)}</option>`).join('');
+}
+function geoAncestry(territoryId) {
+  const t = geoTerritories.find(x => x.id === territoryId);
+  if (!t) return {};
+  const d = geoDistricts.find(x => x.id === t.districtId);
+  const dv = d ? geoDivisions.find(x => x.id === d.divisionId) : null;
+  const s = dv ? geoStates.find(x => x.id === dv.stateId) : null;
+  const z = s ? geoZones.find(x => x.id === s.zoneId) : null;
+  return { territoryId: t.id, districtId: d ? d.id : null, divisionId: dv ? dv.id : null, stateId: s ? s.id : null, zoneId: z ? z.id : null };
+}
+function contentFormExtraFields(type, m) {
+  if (type !== 'Outlet') {
+    return `<div class="field"><label>Code</label><input class="input" name="code" value="${m ? esc(m.code || '') : ''}" placeholder="e.g. FUEL-MS" required /></div>`;
+  }
+  const tsmOptions = users.filter(u => u.role === roleNameBySystemKey('TSM'));
+  const dmOptions = users.filter(u => u.role === roleNameBySystemKey('HOS'));
+  const fuel = (k) => m && m[k] ? 'checked' : '';
+  return `
+    <div class="field"><label>RO Code</label><input class="input" name="code" value="${m ? esc(m.code || '') : ''}" placeholder="e.g. RO10041" required /></div>
+    <div class="field"><label>CMS code</label><input class="input" name="cmsCode" value="${m ? esc(m.cmsCode || '') : ''}" placeholder="e.g. CMS100010" required /></div>
+    <div class="field"><label>Outlet type</label><select class="input" name="outletType">${['COCO', 'DODO', 'CODO'].map(t => `<option ${m && m.outletType === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+    <div class="field"><label>Category</label><select class="input" name="category">${['Urban', 'Rural', 'Highway'].map(t => `<option ${m && m.category === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+    <div class="field full">
+      <label>Fuel types offered</label>
+      <div class="checkbox-group">
+        <label class="checkbox-row"><input type="checkbox" name="fuelMs" ${fuel('fuelMs')} /> MS</label>
+        <label class="checkbox-row"><input type="checkbox" name="fuelHsd" ${fuel('fuelHsd')} /> HSD</label>
+        <label class="checkbox-row"><input type="checkbox" name="fuelCng" ${fuel('fuelCng')} /> CNG</label>
+        <label class="checkbox-row"><input type="checkbox" name="fuelLpg" ${fuel('fuelLpg')} /> LPG</label>
+      </div>
+    </div>
+    <div class="field"><label>Territory</label>
+      <select class="input" name="territoryId">${geoTerritories.filter(t => t.isActive).map(t => `<option value="${t.id}" ${m && m.territoryId === t.id ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Assigned TSM</label>
+      <select class="input" name="tsmName">${tsmOptions.map(t => `<option ${m && m.tsmName === t.name ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Divisional Manager</label>
+      <select class="input" name="dmName">${dmOptions.map(t => `<option ${m && m.dmName === t.name ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Reg. No</label><input class="input" name="regNo" value="${m ? esc(m.regNo || '') : ''}" placeholder="e.g. REG-10041-2026" /></div>
+    <div class="field"><label>Highway No</label><input class="input" name="highwayNo" value="${m ? esc(m.highwayNo || '') : ''}" placeholder="e.g. NH-8" /></div>
+    <div class="field"><label>Contact person</label><input class="input" name="contactPerson" value="${m ? esc(m.contactPerson || '') : ''}" required /></div>
+    <div class="field"><label>Dealer / franchisee name</label><input class="input" name="dealer" value="${m ? esc(m.dealer || '') : ''}" required /></div>
+    <div class="field"><label>RO email</label><input class="input" type="email" name="roEmail" value="${m ? esc(m.roEmail || '') : ''}" /></div>
+    <div class="field"><label>RO mobile</label><input class="input" name="roMobile" value="${m ? esc(m.roMobile || '') : ''}" /></div>
+    <div class="field"><label>Franchisee email</label><input class="input" type="email" name="franchiseeEmail" value="${m ? esc(m.franchiseeEmail || '') : ''}" /></div>
+    <div class="field"><label>Franchisee mobile</label><input class="input" name="franchiseeMobile" value="${m ? esc(m.franchiseeMobile || '') : ''}" /></div>
+    <div class="field"><label>Account number</label><input class="input" name="accountNumber" value="${m ? esc(m.accountNumber || '') : ''}" placeholder="e.g. ACC-RO10041" required /></div>
+    <div class="field full"><label>Outstanding balance (&#8377;)</label><input class="input" type="number" min="0" name="accountBalance" value="${m ? (m.accountBalance ?? 0) : 0}" /></div>`;
+}
+function contentFormBody(m, defaultType) {
+  const type = m ? m.type : (defaultType || 'Outlet');
   return `
     <div class="form-grid">
       <div class="field full"><label>Title</label><input class="input" name="title" value="${m ? esc(m.title) : ''}" required /></div>
       <div class="field"><label>Type</label>
-        <select class="input" name="type">${['Outlet', 'Product', 'Price List', 'Scheme'].map(t => `<option ${m && m.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+        <select class="input" name="type" id="contentFormType">${['Outlet', 'Product', 'Price List', 'Scheme'].map(t => `<option ${type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
       </div>
-      <div class="field"><label>Code</label><input class="input" name="code" value="${m ? esc(m.code) : ''}" required /></div>
-      <div class="field full"><label>Owner</label><input class="input" name="owner" value="${m ? esc(m.owner) : CURRENT_ADMIN.name}" required /></div>
+      <div class="field"><label>Owner</label>
+        <select class="input" name="owner">${ownerOptions(m ? m.owner : CURRENT_ADMIN.name)}</select>
+      </div>
+      <div id="contentFormExtra" style="display:contents;">${contentFormExtraFields(type, m)}</div>
       <div class="field full"><label>Status</label>
         <select class="input" name="status">${['Draft', 'Published', 'Archived'].map(t => `<option ${m && m.status === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
       </div>
@@ -1831,7 +2675,14 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('#otpBackBtn')) { state.auth.step = 'id'; state.auth.error = ''; renderAuth(); return; }
   if (e.target.closest('#markAllReadBtn')) { notifications.forEach(n => n.unread = false); renderApp(); showToast('success', 'All notifications marked as read.'); return; }
 
-  if (e.target.closest('[data-close-modal]') || e.target === document.getElementById('overlayBackdrop')) { closeModal(); closeDetailPanel(); return; }
+  if (e.target.closest('[data-close-modal]') || e.target === document.getElementById('overlayBackdrop')) {
+    // A centered modal (e.g. the photo viewer) can be stacked on top of an open detail panel -
+    // close only the topmost layer so "Close" on the photo doesn't also dismiss the panel behind it.
+    const hasModal = document.getElementById('modalRoot').querySelector('.modal-card');
+    if (hasModal) { closeModal(); if (document.getElementById('detailPanelRoot').querySelector('.detail-panel')) document.getElementById('overlayBackdrop').classList.add('open'); }
+    else closeDetailPanel();
+    return;
+  }
 
   const pageBtn = e.target.closest('[data-page-scope]');
   if (pageBtn && !pageBtn.disabled) {
@@ -1845,17 +2696,17 @@ document.addEventListener('click', (e) => {
   const settingsTabBtn = e.target.closest('[data-settings-tab]');
   if (settingsTabBtn) { state.settingsTab = settingsTabBtn.dataset.settingsTab; renderApp(); return; }
 
-  const usersTabBtn = e.target.closest('[data-users-tab]');
-  if (usersTabBtn) { state.usersTab = usersTabBtn.dataset.usersTab; renderApp(); return; }
-
-  const roleTabBtn = e.target.closest('[data-role-tab]');
-  if (roleTabBtn) { state.rolesTab = roleTabBtn.dataset.roleTab; renderApp(); return; }
-
   const opsTabBtn = e.target.closest('[data-optab]');
   if (opsTabBtn) { state.operations.tab = opsTabBtn.dataset.optab; state.operations.page = 1; renderApp(); return; }
 
   const trackerFilterBtn = e.target.closest('[data-tracker-filter]');
   if (trackerFilterBtn) { state.operations.trackerFilter = trackerFilterBtn.dataset.trackerFilter; state.operations.page = 1; renderApp(); return; }
+
+  const mdTabBtn = e.target.closest('[data-mdtab]');
+  if (mdTabBtn) { state.content.tab = mdTabBtn.dataset.mdtab; state.content.page = 1; renderApp(); return; }
+
+  const geoLevelBtn = e.target.closest('[data-geo-level]');
+  if (geoLevelBtn) { state.content.geoLevel = geoLevelBtn.dataset.geoLevel; renderApp(); return; }
 
   if (e.target.closest('#startSyncBtn')) { runMasterSync(); return; }
 
@@ -1884,19 +2735,31 @@ document.addEventListener('input', (e) => {
   if (e.target.id === 'f-id') { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8); }
   if (e.target.id === 'f-otp') { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); }
   if (e.target.id === 'userSearchInput') { state.users.search = e.target.value; state.users.page = 1; document.getElementById('usersTableWrap').innerHTML = renderUsersTableBody(); }
-  if (e.target.id === 'contentSearchInput') { state.content.search = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableBody(); }
+  if (e.target.id === 'contentSearchInput') { state.content.search = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableWrapBody(); }
   if (e.target.id === 'activitySearchInput') { state.activity.search = e.target.value; document.getElementById('activityTableWrap').innerHTML = renderActivityTableBody(activityLog.filter(a => (state.activity.module === 'all' || a.module === state.activity.module) && (!state.activity.search || `${a.user} ${a.entity} ${a.action}`.toLowerCase().includes(state.activity.search.toLowerCase())))); }
   if (e.target.id === 'globalSearchInput') { runGlobalSearch(e.target.value); }
+  if (e.target.closest('#roleForm')) { updateFormProgress(document.getElementById('roleForm')); }
 });
 document.addEventListener('change', (e) => {
+  if (e.target.closest('#roleForm')) { updateFormProgress(document.getElementById('roleForm')); }
   if (e.target.id === 'userRoleFilter') { state.users.role = e.target.value; state.users.page = 1; document.getElementById('usersTableWrap').innerHTML = renderUsersTableBody(); }
   if (e.target.id === 'userStatusFilter') { state.users.status = e.target.value; state.users.page = 1; document.getElementById('usersTableWrap').innerHTML = renderUsersTableBody(); }
-  if (e.target.id === 'contentTypeFilter') { state.content.type = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableBody(); }
-  if (e.target.id === 'contentStatusFilter') { state.content.status = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableBody(); }
+  if (e.target.id === 'contentTypeFilter') { state.content.type = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableWrapBody(); }
+  if (e.target.id === 'contentStatusFilter') { state.content.status = e.target.value; state.content.page = 1; document.getElementById('contentTableWrap').innerHTML = renderContentTableWrapBody(); }
   if (e.target.id === 'reportTypeFilter') { state.reports.type = e.target.value; state.reports.page = 1; document.getElementById('reportsTableWrap').innerHTML = renderReportsTableBody(); }
   if (e.target.id === 'activityModuleFilter') { state.activity.module = e.target.value; renderApp(); }
+  if (e.target.id === 'forecourtOutletSelect') { state.operations.forecourtOutlet = e.target.value; renderApp(); }
+  if (e.target.id === 'contentFormType') {
+    document.getElementById('contentFormExtra').innerHTML = contentFormExtraFields(e.target.value, null);
+    updateFormProgress(document.getElementById('modalForm'));
+  }
+  if (e.target.id === 'userScopeLevel') {
+    document.getElementById('userScopeValueWrap').innerHTML = userScopeValueField(e.target.value, null);
+    updateFormProgress(document.getElementById('modalForm'));
+  }
 });
 document.addEventListener('submit', (e) => {
+  if (e.target.id === 'roleForm') { e.preventDefault(); submitRoleForm(new FormData(e.target)); return; }
   if (e.target.id === 'loginIdForm') {
     e.preventDefault();
     const a = state.auth;
@@ -1945,7 +2808,7 @@ function handleAction(action, id, el) {
     const u = users.find(x => x.id === id);
     openDetailPanel({
       title: u.name, subtitle: `${u.role} · ${u.id}`,
-      bodyHtml: dpSection('', [['Email', esc(u.email)], ['Phone', esc(u.phone)], ['Role', esc(u.role)], ['Territory', esc(u.territory)],
+      bodyHtml: dpSection('', [['Employee code', esc(u.sapcode || '-')], ['Email', esc(u.email)], ['Phone', esc(u.phone)], ['Role', esc(u.role)], ['Scope', esc(userScopeLabel(u))],
         ['Status', `<span class="badge ${statusBadgeClass(u.status)}">${u.status}</span>`], ['Last active', u.lastActive === '-' ? '-' : fmtDateTime(u.lastActive)]]),
       footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button><button class="btn btn-primary" data-action="edit-user" data-id="${u.id}">${icons.edit}Edit</button>`,
     });
@@ -1966,14 +2829,40 @@ function handleAction(action, id, el) {
     return;
   }
 
-  if (action === 'qa-add-content' || action === 'add-content') return openContentForm();
+  if (action === 'add-role') { state.roleFormId = 'new'; closeDetailPanel(); renderApp(); return; }
+  if (action === 'edit-role') { state.roleFormId = id; closeDetailPanel(); renderApp(); return; }
+  if (action === 'cancel-role-form') { state.roleFormId = null; renderApp(); return; }
+  if (action === 'view-role') {
+    const r = roles.find(x => x.id === id);
+    openDetailPanel({
+      title: r.name, subtitle: `${users.filter(u => u.role === r.name).length} user(s) assigned`,
+      bodyHtml: PERMISSION_MODULES.map(mod => {
+        const p = r.permissions[mod] || emptyPerm();
+        return dpSection(mod, [['Create', p.create ? 'Yes' : 'No'], ['Update', p.update], ['Assign / Reassign', p.assignReassign ? 'Yes' : 'No'], ['Review', p.review ? 'Yes' : 'No']]);
+      }).join(''),
+      footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button><button class="btn btn-primary" data-action="edit-role" data-id="${r.id}">${icons.edit}Edit</button>`,
+    });
+    return;
+  }
+  if (action === 'delete-role') {
+    const r = roles.find(x => x.id === id);
+    const assigned = users.filter(u => u.role === r.name).length;
+    if (assigned) { showToast('error', `Can't delete "${r.name}": ${assigned} user(s) still have this role. Reassign them first.`); return; }
+    openConfirm({ title: 'Delete role?', message: `"${r.name}" will be permanently removed.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { roles = roles.filter(x => x.id !== id); logActivity('Users', 'Delete role', r.name); closeDetailPanel(); renderApp(); showToast('success', 'Role deleted.'); } });
+    return;
+  }
+
+  if (action === 'qa-add-content' || action === 'add-content') return openContentForm(null, el && el.dataset.type);
   if (action === 'edit-content') return openContentForm(masterData.find(m => m.id === id));
   if (action === 'view-content') {
     const m = masterData.find(x => x.id === id);
     const rows = [['Type', esc(m.type)], ['Code', esc(m.code)], ['Owner', esc(m.owner)], ['Status', `<span class="badge ${statusBadgeClass(m.status)}">${m.status}</span>`], ['Updated', fmtDate(m.updatedAt)]];
     let extra = '';
     if (m.type === 'Outlet' && m.accountNumber) {
-      extra = dpSection('Account information', [['Dealer', esc(m.dealer)], ['CMS code', esc(m.cmsCode)], ['TSM', `${esc(m.tsmName)} (${esc(m.tsmPhone)})`], ['Divisional Manager', `${esc(m.dmName)} (${esc(m.dmPhone)})`], ['Account number', esc(m.accountNumber)], ['Account balance', `<span style="color:${m.accountBalance ? 'var(--danger)' : 'var(--success)'};">₹${m.accountBalance.toLocaleString('en-IN')}</span>`]]);
+      const fuels = [['MS', m.fuelMs], ['HSD', m.fuelHsd], ['CNG', m.fuelCng], ['LPG', m.fuelLpg]].filter(f => f[1]).map(f => f[0]);
+      extra = dpSection('Classification & location', [['Outlet type', esc(m.outletType || '-')], ['Category', esc(m.category || '-')], ['Fuel types', fuels.length ? fuels.join(', ') : '-'], ['Territory', esc(m.territoryId ? geoName('territory', m.territoryId) : '-')], ['District', esc(m.districtId ? geoName('district', m.districtId) : '-')], ['Reg. No', esc(m.regNo || '-')], ['Highway No', esc(m.highwayNo || '-')]])
+        + dpSection('Contacts', [['Contact person', esc(m.contactPerson || '-')], ['RO email', esc(m.roEmail || '-')], ['RO mobile', esc(m.roMobile || '-')], ['Dealer / franchisee', esc(m.dealer)], ['Franchisee email', esc(m.franchiseeEmail || '-')], ['Franchisee mobile', esc(m.franchiseeMobile || '-')]])
+        + dpSection('Account information', [['CMS code', esc(m.cmsCode)], ['TSM', `${esc(m.tsmName)} (${esc(m.tsmPhone)})`], ['Divisional Manager', `${esc(m.dmName)} (${esc(m.dmPhone)})`], ['Account number', esc(m.accountNumber)], ['Account balance', `<span style="color:${m.accountBalance ? 'var(--danger)' : 'var(--success)'};">₹${m.accountBalance.toLocaleString('en-IN')}</span>`]]);
     }
     openDetailPanel({ title: m.title, subtitle: m.type, bodyHtml: dpSection('', rows) + extra, footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button><button class="btn btn-primary" data-action="edit-content" data-id="${m.id}">${icons.edit}Edit</button>` });
     return;
@@ -1981,15 +2870,45 @@ function handleAction(action, id, el) {
   if (action === 'toggle-content') {
     const m = masterData.find(x => x.id === id);
     if (m.status !== 'Archived') {
-      openConfirm({ title: 'Archive this item?', message: `"${m.title}" will be archived and hidden from the field app.`, confirmLabel: 'Archive', danger: true, onConfirm: () => { m.status = 'Archived'; m.updatedAt = new Date().toISOString(); logActivity('Content / Data', 'Archive', m.title); renderApp(); showToast('success', 'Item archived.'); } });
+      openConfirm({ title: 'Archive this item?', message: `"${m.title}" will be archived and hidden from the field app.`, confirmLabel: 'Archive', danger: true, onConfirm: () => { m.status = 'Archived'; m.updatedAt = new Date().toISOString(); logActivity('Master Data', 'Archive', m.title); renderApp(); showToast('success', 'Item archived.'); } });
     } else {
-      m.status = 'Published'; m.updatedAt = new Date().toISOString(); logActivity('Content / Data', 'Publish', m.title); renderApp(); showToast('success', 'Item published.');
+      m.status = 'Published'; m.updatedAt = new Date().toISOString(); logActivity('Master Data', 'Publish', m.title); renderApp(); showToast('success', 'Item published.');
     }
     return;
   }
   if (action === 'delete-content') {
     const m = masterData.find(x => x.id === id);
-    openConfirm({ title: 'Delete item?', message: `"${m.title}" will be permanently removed from master data.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { masterData = masterData.filter(x => x.id !== id); logActivity('Content / Data', 'Delete', m.title); renderApp(); showToast('success', 'Item deleted.'); } });
+    openConfirm({ title: 'Delete item?', message: `"${m.title}" will be permanently removed from master data.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { masterData = masterData.filter(x => x.id !== id); logActivity('Master Data', 'Delete', m.title); renderApp(); showToast('success', 'Item deleted.'); } });
+    return;
+  }
+
+  if (action === 'add-geo') return openGeoForm(el.dataset.level);
+  if (action === 'edit-geo') { const levelInfo = GEO_LEVELS.find(l => l.key === el.dataset.level); return openGeoForm(el.dataset.level, levelInfo.list().find(x => x.id === Number(id))); }
+  if (action === 'delete-geo') {
+    const level = el.dataset.level;
+    const levelInfo = GEO_LEVELS.find(l => l.key === level);
+    const r = levelInfo.list().find(x => x.id === Number(id));
+    if (geoHasChildren(level, r.id)) { showToast('error', `Can't delete "${r.name}": it still has ${GEO_LEVELS[GEO_LEVELS.findIndex(l => l.key === level) + 1].label.toLowerCase()}s under it. Remove those first.`); return; }
+    openConfirm({ title: `Delete ${levelInfo.label.toLowerCase()}?`, message: `"${r.name}" will be permanently removed.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => {
+      const idx = levelInfo.list().indexOf(r); levelInfo.list().splice(idx, 1);
+      logActivity('Master Data', 'Delete', `${levelInfo.label}: ${r.name}`); renderApp(); showToast('success', `${levelInfo.label} deleted.`);
+    } });
+    return;
+  }
+
+  if (action === 'add-branding') return openBrandingForm();
+  if (action === 'edit-branding') return openBrandingForm(roBranding.find(x => x.id === Number(id)));
+  if (action === 'delete-branding') {
+    const b = roBranding.find(x => x.id === Number(id));
+    openConfirm({ title: 'Delete branding record?', message: `The branding & CVP record for ${b.cmsCode} will be permanently removed.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { roBranding = roBranding.filter(x => x.id !== Number(id)); logActivity('Master Data', 'Delete', `Branding: ${b.cmsCode}`); renderApp(); showToast('success', 'Branding record deleted.'); } });
+    return;
+  }
+
+  if (action === 'add-stockvar') return openStockVarForm();
+  if (action === 'edit-stockvar') return openStockVarForm(stockVariationRules.find(x => x.id === Number(id)));
+  if (action === 'delete-stockvar') {
+    const v = stockVariationRules.find(x => x.id === Number(id));
+    openConfirm({ title: 'Delete rule?', message: `The ${v.stockType} ${v.meterPercent} variation rule will be permanently removed.`, confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { stockVariationRules = stockVariationRules.filter(x => x.id !== Number(id)); logActivity('Master Data', 'Delete', `Stock variation rule: ${v.stockType} ${v.meterPercent}`); renderApp(); showToast('success', 'Rule deleted.'); } });
     return;
   }
 
@@ -2019,12 +2938,37 @@ function handleAction(action, id, el) {
 
   if (action === 'view-audit') {
     const a = auditForms.find(x => x.id === id);
+    const pct = auditCompletionPct(a);
     openDetailPanel({
       title: a.outletName, subtitle: `RO Audit Form · ${a.refNo}`,
       bodyHtml: dpSection('RO details', [['Reg. No', esc(a.regNo)], ['TSM', esc(a.tsmName)], ['Divisional Manager', esc(a.divisionalManager)], ['Visit date', fmtDate(a.visitDate)], ['Previous visit', fmtDate(a.prevVisitDate)], ['Status', `<span class="badge ${statusBadgeClass(a.status)}">${a.status}</span>`]])
-        + dpSection('Submission', [['Photos captured', `${a.photosCaptured} / 2`], ['Attendees logged', a.attendeeCount]]),
+        + `<div class="dp-section"><div class="dp-section-title">Form completion (${pct}%)</div>`
+        + auditChecklist(a).map(i => `<div class="dp-row"><span class="dp-k">${esc(i.label)}</span><span class="dp-v">${i.done ? `<span class="badge badge-success">${icons.check}Done</span>` : `<span class="badge badge-danger">Missing</span>`}</span></div>`).join('')
+        + `</div>`
+        + `<div class="dp-section"><div class="dp-section-title">Photos captured (${a.photosCaptured}/2)</div><div class="dp-photo-grid">`
+        + AUDIT_PHOTO_SLOTS.map((slot, i) => a.photosCaptured > i
+            ? `<div class="dp-photo-tile"><button class="dp-photo-btn" data-action="view-photo" data-id="${a.id}" data-slot="${i}"><img src="${mockPhotoDataUri(slot, a.outletName)}" alt="${esc(slot)}" /></button><div class="dp-photo-caption">${esc(slot)}</div></div>`
+            : `<div class="dp-photo-tile missing">${icons.camera}<div class="dp-photo-caption">${esc(slot)}, not captured</div></div>`
+          ).join('')
+        + `</div></div>`
+        + `<div class="dp-section"><div class="dp-section-title">Attendance (${a.attendees.length})</div>`
+        + (a.attendees.length ? `<div class="dp-chip-list">${a.attendees.map(n => `<span class="chip" style="cursor:default;">${esc(n)}</span>`).join('')}</div>` : `<p style="font-size:13px;color:var(--text-secondary);">No attendees logged for this visit.</p>`)
+        + `</div>`
+        + `<div class="dp-section" style="border-top:1px solid var(--divider);padding-top:16px;"><div class="dp-section-title">Full form: every section as captured on the visit</div></div>`
+        + CRA_FORM_SECTIONS.map(s => {
+            const data = (a.sections || {})[s.key];
+            return sectionHasData(data)
+              ? dpSection(s.label, sectionRows(data))
+              : `<div class="dp-section"><div class="dp-section-title">${esc(s.label)}</div><p style="font-size:12.5px;color:var(--muted);">Not captured for this visit.</p></div>`;
+          }).join(''),
       footerHtml: `<button class="btn btn-outline" data-close-modal>Close</button><button class="btn btn-danger" data-action="delete-audit" data-id="${a.id}">${icons.trash}Delete</button>`,
     });
+    return;
+  }
+  if (action === 'view-photo') {
+    const a = auditForms.find(x => x.id === id);
+    const slot = AUDIT_PHOTO_SLOTS[Number(el.dataset.slot)];
+    openPhotoViewer({ label: slot, sublabel: a.outletName, dataUri: mockPhotoDataUri(slot, a.outletName), meta: `${a.outletName} · visited ${fmtDate(a.visitDate)}` });
     return;
   }
   if (action === 'delete-audit') {
@@ -2035,10 +2979,14 @@ function handleAction(action, id, el) {
 
   if (action === 'view-tracker') {
     const r = monthlyTracker.find(x => x.outletName === id);
+    const answered = r.answers.filter(a => a.status !== null).length;
+    const statusBadge = (st) => st === 'yes' ? `<span class="badge badge-success">Yes</span>` : st === 'no' ? `<span class="badge badge-danger">No</span>` : `<span class="badge badge-muted">Not answered</span>`;
     openDetailPanel({
       title: r.outletName, subtitle: `RO Monthly Tracker · ${r.month}`,
       bodyHtml: dpSection('', [['TSM', esc(r.tsmName)], ['Completion', `${r.percentage}%`], ['Status', `<span class="badge ${statusBadgeClass(trackerStatusLabel(r))}">${trackerStatusLabel(r)}</span>`]])
-        + `<div class="dp-section"><div class="dp-section-title">Open points</div>${r.openPoints.length ? `<div class="dp-chip-list">${r.openPoints.map(p => `<span class="chip" style="cursor:default;">${esc(p)}</span>`).join('')}</div>` : `<p style="font-size:13px;color:var(--text-secondary);">No open points — fully compliant.</p>`}</div>`,
+        + `<div class="dp-section"><div class="dp-section-title">Checklist (${answered}/${r.answers.length} answered)</div>`
+        + r.answers.map(a => `<div class="dp-row"><span class="dp-k">${esc(a.question)}</span><span class="dp-v">${statusBadge(a.status)}</span></div>`).join('')
+        + `</div>`,
     });
     return;
   }
@@ -2050,7 +2998,7 @@ function handleAction(action, id, el) {
     const tTracker = monthlyTracker.filter(r => r.tsmName === t.name);
     const tIndents = indents.filter(i => assigned.some(o => o.title === i.outletName));
     openDetailPanel({
-      title: t.name, subtitle: `${t.role} · ${t.territory}`,
+      title: t.name, subtitle: `${t.role} · ${userScopeLabel(t)}`,
       bodyHtml: dpSection('Contact', [['Email', esc(t.email)], ['Phone', esc(t.phone)], ['Status', `<span class="badge ${statusBadgeClass(t.status)}">${t.status}</span>`]])
         + dpSection('Field activity', [['Assigned outlets', assigned.length], ['Audit forms submitted', tAudits.length], ['Tracker records', tTracker.length], ['Indents raised', tIndents.length]])
         + (assigned.length ? `<div class="dp-section"><div class="dp-section-title">Assigned outlets</div><div class="dp-chip-list">${assigned.map(o => `<span class="chip" style="cursor:default;">${esc(o.title)}</span>`).join('')}</div></div>` : ''),
@@ -2120,6 +3068,7 @@ function handleAction(action, id, el) {
     });
     return;
   }
+  if (action === 'mark-all-read') { notifications.forEach(n => n.unread = false); renderApp(); showToast('success', 'All notifications marked as read.'); return; }
   if (action === 'notif-read') { const n = notifications.find(x => x.id === id); n.unread = false; renderApp(); return; }
   if (action === 'notif-delete') {
     openConfirm({ title: 'Delete notification?', message: 'This notification will be permanently removed.', confirmLabel: 'Delete', danger: true, iconName: 'trash', onConfirm: () => { notifications = notifications.filter(x => x.id !== id); renderApp(); showToast('success', 'Notification deleted.'); } });
@@ -2131,20 +3080,53 @@ function openUserForm(u) {
   openFormModal({
     title: u ? 'Edit User' : 'Add User', submitLabel: u ? 'Save changes' : 'Add User', bodyHtml: userFormBody(u),
     onSubmit: (fd) => {
-      const data = { name: fd.get('name'), email: fd.get('email'), phone: fd.get('phone'), role: fd.get('role'), territory: fd.get('territory') };
+      const scopeLevel = fd.get('scopeLevel');
+      const scopeValue = scopeLevel !== 'all' ? Number(fd.get('scopeValue')) : null;
+      const data = {
+        name: fd.get('name'), sapcode: fd.get('sapcode'), email: fd.get('email'), phone: fd.get('phone'), role: fd.get('role'),
+        territoryId: scopeLevel === 'territory' ? scopeValue : null,
+        districtId: scopeLevel === 'district' ? scopeValue : null,
+        divisionId: scopeLevel === 'division' ? scopeValue : null,
+        stateId: scopeLevel === 'state' ? scopeValue : null,
+      };
       if (u) { Object.assign(u, data); logActivity('Users', 'Update', u.name); showToast('success', 'User updated.'); }
       else { users.push({ id: `U-${userIdSeq++}`, status: 'Pending', lastActive: '-', ...data }); logActivity('Users', 'Create', data.name); showToast('success', 'User added.'); }
       closeModal(); closeDetailPanel(); if (state.route === 'users') renderApp();
     }
   });
 }
-function openContentForm(m) {
+const OUTLET_ONLY_FIELDS = ['dealer', 'tsmName', 'tsmPhone', 'dmName', 'dmPhone', 'cmsCode', 'accountNumber', 'accountBalance', 'outletType', 'category', 'fuelMs', 'fuelHsd', 'fuelCng', 'fuelLpg', 'zoneId', 'stateId', 'divisionId', 'districtId', 'territoryId', 'contactPerson', 'roEmail', 'roMobile', 'franchiseeEmail', 'franchiseeMobile', 'regNo', 'highwayNo'];
+function openContentForm(m, defaultType) {
   openFormModal({
-    title: m ? 'Edit Item' : 'Add Data Item', submitLabel: m ? 'Save changes' : 'Add Item', bodyHtml: contentFormBody(m),
+    title: m ? (m.type === 'Outlet' ? 'Edit Outlet' : 'Edit Item') : ((defaultType || 'Outlet') === 'Outlet' ? 'Add Outlet' : 'Add Data Item'),
+    submitLabel: m ? 'Save changes' : 'Add Item', bodyHtml: contentFormBody(m, defaultType),
     onSubmit: (fd) => {
-      const data = { title: fd.get('title'), type: fd.get('type'), code: fd.get('code'), owner: fd.get('owner'), status: fd.get('status') };
-      if (m) { Object.assign(m, data); m.updatedAt = new Date().toISOString(); logActivity('Content / Data', 'Update', m.title); showToast('success', 'Item updated.'); }
-      else { masterData.push({ id: `MD-${mdIdSeq++}`, updatedAt: new Date().toISOString(), ...data }); logActivity('Content / Data', 'Create', data.title); showToast('success', 'Item added.'); }
+      const type = fd.get('type');
+      const data = { title: fd.get('title'), type, code: fd.get('code'), owner: fd.get('owner'), status: fd.get('status') };
+      // Outlets carry the same account-info fields the mobile app's Account Info screen shows, so a
+      // newly created outlet immediately shows up in TSM Management's assigned outlets and in the
+      // Accounts & Outstanding page, nothing created here is a dead end.
+      if (type === 'Outlet') {
+        const tsm = users.find(u => u.name === fd.get('tsmName'));
+        const dm = users.find(u => u.name === fd.get('dmName'));
+        Object.assign(data, geoAncestry(Number(fd.get('territoryId'))), {
+          dealer: fd.get('dealer'),
+          tsmName: fd.get('tsmName') || '', tsmPhone: tsm ? tsm.phone : '',
+          dmName: fd.get('dmName') || '', dmPhone: dm ? dm.phone : '',
+          cmsCode: fd.get('cmsCode'), accountNumber: fd.get('accountNumber'),
+          accountBalance: Number(fd.get('accountBalance')) || 0,
+          outletType: fd.get('outletType'), category: fd.get('category'),
+          fuelMs: fd.get('fuelMs') === 'on', fuelHsd: fd.get('fuelHsd') === 'on', fuelCng: fd.get('fuelCng') === 'on', fuelLpg: fd.get('fuelLpg') === 'on',
+          contactPerson: fd.get('contactPerson'), roEmail: fd.get('roEmail'), roMobile: fd.get('roMobile'),
+          franchiseeEmail: fd.get('franchiseeEmail'), franchiseeMobile: fd.get('franchiseeMobile'),
+          regNo: fd.get('regNo'), highwayNo: fd.get('highwayNo'),
+        });
+      } else if (m) {
+        // Type was switched away from Outlet on edit, drop the now-irrelevant outlet fields.
+        OUTLET_ONLY_FIELDS.forEach(f => delete m[f]);
+      }
+      if (m) { Object.assign(m, data); m.updatedAt = new Date().toISOString(); logActivity('Master Data', 'Update', m.title); showToast('success', 'Item updated.'); }
+      else { masterData.push({ id: `MD-${mdIdSeq++}`, updatedAt: new Date().toISOString(), ...data }); logActivity('Master Data', 'Create', data.title); showToast('success', `Item added.${type === 'Outlet' && data.tsmName ? ` Now assigned to ${data.tsmName} in TSM Management.` : ''}`); }
       closeModal(); closeDetailPanel(); if (state.route === 'content') renderApp();
     }
   });
@@ -2153,7 +3135,13 @@ function openContentForm(m) {
 document.addEventListener('focusin', (e) => { if (e.target.id === 'globalSearchInput') runGlobalSearch(e.target.value); });
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('globalSearchInput')?.focus(); }
-  if (e.key === 'Escape') { document.getElementById('globalSearchResults')?.classList.remove('open'); closeAllDropdowns(); closeModal(); closeDetailPanel(); }
+  if (e.key === 'Escape') {
+    document.getElementById('globalSearchResults')?.classList.remove('open');
+    closeAllDropdowns();
+    const hasModal = document.getElementById('modalRoot').querySelector('.modal-card');
+    if (hasModal) { closeModal(); if (document.getElementById('detailPanelRoot').querySelector('.detail-panel')) document.getElementById('overlayBackdrop').classList.add('open'); }
+    else closeDetailPanel();
+  }
 });
 
 /* ==================== init ==================== */
