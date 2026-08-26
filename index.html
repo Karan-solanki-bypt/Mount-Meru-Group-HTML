@@ -2301,6 +2301,43 @@ const {icons} = Modules['components/icons'];
 function navigate(...__a) { return Modules.router.navigate(...__a); }
 function goBack(...__a) { return Modules.router.goBack(...__a); }
 const {openDrawer} = Modules['components/navigation'];
+const {openSheet} = Modules['components/modal'];
+const {skeletonList} = Modules['components/skeleton'];
+const {mockApi} = Modules['mock-api'];
+
+const NOTIF_STYLE = {
+  tracker: { icon: 'checkCircle', bg: 'var(--info-light)', color: 'var(--info)' },
+  cra: { icon: 'shield', bg: 'var(--warning-light)', color: 'var(--warning)' },
+  sync: { icon: 'refresh', bg: 'var(--success-light)', color: 'var(--success)' },
+};
+
+// PROTOTYPE — Notifications (see conversation). Shared across every screen's header (wherever
+// showProfile is shown, i.e. every "logged into the main app" screen) rather than one-off per
+// screen. Opens a sheet listing pending-work reminders derived from existing Monthly
+// Tracker / CRA draft data.
+function openNotificationsSheet() {
+  openSheet({
+    title: 'Notifications',
+    bodyHtml: `<div id="notif-list">${skeletonList(3)}</div>`,
+  });
+  mockApi.getNotifications().then((items) => {
+    const el = document.getElementById('notif-list');
+    if (!items.length) { el.innerHTML = '<p style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px 0;">You\'re all caught up.</p>'; return; }
+    el.innerHTML = items.map((n) => {
+      const s = NOTIF_STYLE[n.type];
+      return `
+      <div class="notif-card ${n.unread ? 'unread' : ''}" style="padding:12px 0;border-bottom:1px solid var(--divider);">
+        <span class="notif-icon" style="background:${s.bg};color:${s.color};">${icons[s.icon]}</span>
+        <div style="flex:1;min-width:0;">
+          <div class="n-title">${n.title}</div>
+          <div class="n-desc">${n.desc}</div>
+          <div class="n-time">${n.time}</div>
+        </div>
+        ${n.unread ? '<span class="notif-unread-dot"></span>' : ''}
+      </div>`;
+    }).join('');
+  });
+}
 
 function renderHeader({ title, subtitle = '', showBack = false, showMenu = false, showProfile = false, rightHtml = '' }) {
   return `
@@ -2309,6 +2346,11 @@ function renderHeader({ title, subtitle = '', showBack = false, showMenu = false
       ${showMenu ? `<button class="icon-btn" id="hdr-menu" aria-label="Open menu">${icons.menu}</button>` : ''}
       <div class="app-header-title">${title}${subtitle ? `<small>${subtitle}</small>` : ''}</div>
       ${rightHtml}
+      ${showProfile ? `
+      <span class="header-badge-wrap">
+        <button class="icon-btn" id="hdr-notif" aria-label="Notifications">${icons.bell}</button>
+        <span class="header-badge" id="hdr-notif-count" style="display:none;"></span>
+      </span>` : ''}
       ${showProfile ? `<button class="icon-btn" id="hdr-profile" aria-label="Profile">${icons.user}</button>` : ''}
     </header>`;
 }
@@ -2317,6 +2359,14 @@ function attachHeader(container, { backFallback } = {}) {
   container.querySelector('#hdr-back')?.addEventListener('click', () => goBack(backFallback));
   container.querySelector('#hdr-menu')?.addEventListener('click', () => openDrawer());
   container.querySelector('#hdr-profile')?.addEventListener('click', () => navigate('/profile'));
+  container.querySelector('#hdr-notif')?.addEventListener('click', openNotificationsSheet);
+  const badge = container.querySelector('#hdr-notif-count');
+  if (badge) {
+    mockApi.getNotifications().then((items) => {
+      const unread = items.filter((n) => n.unread).length;
+      if (unread > 0) { badge.textContent = unread; badge.style.display = 'flex'; }
+    });
+  }
 }
 
 return {renderHeader, attachHeader};
@@ -2749,39 +2799,6 @@ const {mockApi} = Modules['mock-api'];
 const {icons} = Modules['components/icons'];
 const {skeletonList, errorState} = Modules['components/skeleton'];
 const {showToast} = Modules['components/toast'];
-const {openSheet} = Modules['components/modal'];
-
-const NOTIF_STYLE = {
-  tracker: { icon: 'checkCircle', bg: 'var(--info-light)', color: 'var(--info)' },
-  cra: { icon: 'shield', bg: 'var(--warning-light)', color: 'var(--warning)' },
-  sync: { icon: 'refresh', bg: 'var(--success-light)', color: 'var(--success)' },
-};
-
-// PROTOTYPE — Notifications (see conversation). Opens a sheet listing pending-work reminders
-// derived from existing Monthly Tracker / CRA draft data.
-function openNotificationsSheet() {
-  openSheet({
-    title: 'Notifications',
-    bodyHtml: `<div id="notif-list">${skeletonList(3)}</div>`,
-  });
-  mockApi.getNotifications().then((items) => {
-    const el = document.getElementById('notif-list');
-    if (!items.length) { el.innerHTML = '<p style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px 0;">You\'re all caught up.</p>'; return; }
-    el.innerHTML = items.map((n) => {
-      const s = NOTIF_STYLE[n.type];
-      return `
-      <div class="notif-card ${n.unread ? 'unread' : ''}" style="padding:12px 0;border-bottom:1px solid var(--divider);">
-        <span class="notif-icon" style="background:${s.bg};color:${s.color};">${icons[s.icon]}</span>
-        <div style="flex:1;min-width:0;">
-          <div class="n-title">${n.title}</div>
-          <div class="n-desc">${n.desc}</div>
-          <div class="n-time">${n.time}</div>
-        </div>
-        ${n.unread ? '<span class="notif-unread-dot"></span>' : ''}
-      </div>`;
-    }).join('');
-  });
-}
 
 // Smooth curve through points via midpoint-control cubic beziers (lightweight Catmull-Rom stand-in).
 function smoothPath(points) {
@@ -2810,11 +2827,7 @@ function liquidGauge(pct, color) {
 
 function render(container) {
   const body = mountScreen(container, {
-    header: { title: 'Dashboard', showMenu: true, showProfile: true, rightHtml: `
-      <span class="header-badge-wrap">
-        <button class="icon-btn" id="notif-btn" aria-label="Notifications">${icons.bell}</button>
-        <span class="header-badge" id="notif-count" style="display:none;"></span>
-      </span>` },
+    header: { title: 'Dashboard', showMenu: true, showProfile: true },
     bodyHtml: `
       <div class="field" style="margin-bottom:10px;">
         <select class="input" id="ro-picker"><option>All Retail Outlets</option></select>
@@ -2827,13 +2840,6 @@ function render(container) {
       <button class="btn btn-outline" id="sync-data-btn" style="margin-bottom:14px;color:var(--success);border-color:var(--success);">${icons.refresh} Sync Data</button>
       <div id="dash-content">${skeletonList(3)}</div>
     `,
-  });
-
-  container.querySelector('#notif-btn').addEventListener('click', openNotificationsSheet);
-  mockApi.getNotifications().then((items) => {
-    const unread = items.filter((n) => n.unread).length;
-    const badge = container.querySelector('#notif-count');
-    if (unread > 0) { badge.textContent = unread; badge.style.display = 'flex'; }
   });
 
   container.querySelector('#go-btn').addEventListener('click', () => loadDashboard(body));
