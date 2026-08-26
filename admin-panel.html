@@ -2375,20 +2375,20 @@ function renderSettingsTabBody() {
         </div>
         <button type="submit" class="btn btn-primary">Save changes</button>
       </form>
-      <div class="switch-row" style="margin-top:6px;"><div><div class="sr-title">Dark theme</div><div class="sr-desc">Switch the Admin Panel between light and dark mode.</div></div><button class="switch ${state.theme === 'dark' ? 'on' : ''}" id="themeSwitchBtn"></button></div>`;
+      <div class="switch-row" style="margin-top:6px;"><div><div class="sr-title">Dark theme</div><div class="sr-desc">Switch the Admin Panel between light and dark mode.</div></div><button class="switch ${state.theme === 'dark' ? 'on' : ''}" id="themeSwitchBtn"><span class="knob"></span></button></div>`;
   }
   if (state.settingsTab === 'security') {
     return `
-      <div class="switch-row"><div><div class="sr-title">Two-factor authentication</div><div class="sr-desc">Require an OTP for all admin sign-ins.</div></div><button class="switch on" data-toggle-switch></button></div>
-      <div class="switch-row"><div><div class="sr-title">Enforce strong passwords</div><div class="sr-desc">Minimum 8 characters with a number and symbol.</div></div><button class="switch on" data-toggle-switch></button></div>
-      <div class="switch-row"><div><div class="sr-title">Auto sign-out after 30 minutes idle</div><div class="sr-desc">Applies to all admin sessions.</div></div><button class="switch" data-toggle-switch></button></div>
+      <div class="switch-row"><div><div class="sr-title">Two-factor authentication</div><div class="sr-desc">Require an OTP for all admin sign-ins.</div></div><button class="switch on" data-toggle-switch><span class="knob"></span></button></div>
+      <div class="switch-row"><div><div class="sr-title">Enforce strong passwords</div><div class="sr-desc">Minimum 8 characters with a number and symbol.</div></div><button class="switch on" data-toggle-switch><span class="knob"></span></button></div>
+      <div class="switch-row"><div><div class="sr-title">Auto sign-out after 30 minutes idle</div><div class="sr-desc">Applies to all admin sessions.</div></div><button class="switch" data-toggle-switch><span class="knob"></span></button></div>
       <div style="margin-top:16px;"><button class="btn btn-outline">${icons.lock}Change password</button></div>`;
   }
   if (state.settingsTab === 'notifications') {
     return `
-      <div class="switch-row"><div><div class="sr-title">Email notifications</div><div class="sr-desc">Receive a daily digest of key alerts by email.</div></div><button class="switch on" data-toggle-switch></button></div>
-      <div class="switch-row"><div><div class="sr-title">SMS alerts</div><div class="sr-desc">Critical alerts (overdue audits, low stock) via SMS.</div></div><button class="switch on" data-toggle-switch></button></div>
-      <div class="switch-row"><div><div class="sr-title">In-app push notifications</div><div class="sr-desc">Show a badge on the bell icon for new alerts.</div></div><button class="switch on" data-toggle-switch></button></div>`;
+      <div class="switch-row"><div><div class="sr-title">Email notifications</div><div class="sr-desc">Receive a daily digest of key alerts by email.</div></div><button class="switch on" data-toggle-switch><span class="knob"></span></button></div>
+      <div class="switch-row"><div><div class="sr-title">SMS alerts</div><div class="sr-desc">Critical alerts (overdue audits, low stock) via SMS.</div></div><button class="switch on" data-toggle-switch><span class="knob"></span></button></div>
+      <div class="switch-row"><div><div class="sr-title">In-app push notifications</div><div class="sr-desc">Show a badge on the bell icon for new alerts.</div></div><button class="switch on" data-toggle-switch><span class="knob"></span></button></div>`;
   }
   return renderMasterSyncBody();
 }
